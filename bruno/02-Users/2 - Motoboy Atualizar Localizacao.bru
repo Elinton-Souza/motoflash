@@ -1,0 +1,22 @@
+meta {
+  name: 2 - Motoboy Atualizar Localizacao
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/users/me/location
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{motoToken}}
+}
+
+body:json {
+  {
+    "lat": -23.5615,
+    "lng": -46.6558
+  }
+}

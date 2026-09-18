@@ -1,0 +1,14 @@
+meta {
+  name: 2 - Marcar Pronto
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/orders/{{orderId}}/ready
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{restToken}}
+}

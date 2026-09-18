@@ -1,0 +1,14 @@
+meta {
+  name: 6 - Finalizar Entrega
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/deliveries/{{deliveryId}}/complete
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{motoToken}}
+}

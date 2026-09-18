@@ -1,0 +1,23 @@
+meta {
+  name: 1 - Login Restaurante
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "restaurante@motoflash.com",
+    "password": "123456"
+  }
+}
+
+script:post-response {
+  bru.setVar("restToken", res.body.token);
+  bru.setVar("restaurantId", res.body.user.id);
+}

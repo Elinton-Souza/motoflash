@@ -1,0 +1,14 @@
+meta {
+  name: 5 - Listar Fila de Pedidos
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/orders
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{restToken}}
+}

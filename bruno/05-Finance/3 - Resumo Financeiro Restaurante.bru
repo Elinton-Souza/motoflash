@@ -1,0 +1,14 @@
+meta {
+  name: 3 - Resumo Financeiro Restaurante
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/finance/restaurant/summary
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{restToken}}
+}

@@ -1,0 +1,18 @@
+meta {
+  name: 2 - Aceitar Oferta
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/deliveries/offers/{{offerId}}/accept
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{motoToken}}
+}
+
+script:post-response {
+  bru.setVar("deliveryId", res.body.id);
+}

@@ -1,0 +1,14 @@
+meta {
+  name: 1 - Resumo Diario Motoboy
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/finance/courier/daily
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{motoToken}}
+}

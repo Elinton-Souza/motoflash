@@ -1,0 +1,21 @@
+meta {
+  name: 1 - Motoboy Ficar Online
+  type: http
+  seq: 1
+}
+
+put {
+  url: {{baseUrl}}/users/me/status
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{motoToken}}
+}
+
+body:json {
+  {
+    "status": "ONLINE"
+  }
+}

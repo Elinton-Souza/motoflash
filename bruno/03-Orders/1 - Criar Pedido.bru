@@ -1,0 +1,32 @@
+meta {
+  name: 1 - Criar Pedido
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/orders
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{restToken}}
+}
+
+body:json {
+  {
+    "customerName": "João da Silva",
+    "customerAddress": "Rua Exemplo, 123",
+    "customerLat": -23.5620,
+    "customerLng": -46.6560,
+    "value": 85,
+    "deliveryFee": 12
+  }
+}
+
+script:post-response {
+  bru.setVar("orderId", res.body.id);
+  bru.setVar("orderNumber", res.body.number);
+  bru.setVar("pickupCode", res.body.pickupCode);
+}

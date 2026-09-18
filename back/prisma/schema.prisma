@@ -1,0 +1,167 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  RESTAURANT
+  MOTOBOY
+  ADMIN
+}
+
+enum CourierStatus {
+  OFFLINE
+  ONLINE
+  ON_DELIVERY
+}
+
+enum OrderStatus {
+  PREPARING
+  READY
+  DISPATCHED
+  DELIVERED
+  CANCELED
+}
+
+enum DeliveryStatus {
+  SEARCHING_COURIER
+  COURIER_ASSIGNED
+  PICKED_UP
+  IN_DELIVERY
+  DELIVERED
+  CANCELED
+  NO_COURIER_FOUND
+}
+
+enum DeliveryOfferStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+}
+
+enum TransactionType {
+  EARNING
+  PAYOUT
+  FEE
+}
+
+// Usuário único da plataforma: pode ser Restaurante, Motoboy ou Admin,
+// diferenciados pelo campo "role". Os campos específicos de cada perfil
+// ficam opcionais no mesmo modelo para simplificar o MVP.
+model User {
+  id        String   @id @default(uuid())
+  name      String   @db.VarChar(80)
+  email     String   @unique @db.VarChar(120)
+  password  String   @db.VarChar(100)
+  phone     String?  @db.VarChar(20)
+  role      Role
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Perfil Restaurante (Ana/Beatriz)
+  restaurantName    String? @db.VarChar(80)
+  restaurantAddress String? @db.VarChar(160)
+
+  // Perfil Motoboy (Carlos)
+  vehiclePlate  String?        @db.VarChar(10)
+  courierStatus CourierStatus? @default(OFFLINE)
+  currentLat    Float?
+  currentLng    Float?
+  ratingAvg     Float?         @default(5)
+  ratingCount   Int            @default(0)
+
+  ordersAsRestaurant  Order[]         @relation("RestaurantOrders")
+  deliveriesAsCourier Delivery[]      @relation("CourierDeliveries")
+  offers              DeliveryOffer[]
+  transactions        Transaction[]
+
+  @@map("users")
+}
+
+// Pedido criado pelo restaurante. O código de retirada é gerado aqui e
+// conferido pelo motoboy na hora de buscar o pedido no balcão.
+model Order {
+  id           String      @id @default(uuid())
+  // Número sequencial amigável exibido nas telas (#1254), diferente do id (uuid).
+  number       Int         @unique @default(autoincrement())
+  restaurant   User        @relation("RestaurantOrders", fields: [restaurantId], references: [id])
+  restaurantId String
+  customerName String      @db.VarChar(80)
+  customerAddress String   @db.VarChar(160)
+  customerLat  Float
+  customerLng  Float
+  value        Decimal     @db.Decimal(10, 2)
+  deliveryFee  Decimal     @default(0) @db.Decimal(10, 2)
+  pickupCode   String      @db.VarChar(6)
+  status       OrderStatus @default(PREPARING)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  readyAt      DateTime?
+  deliveredAt  DateTime?
+
+  delivery Delivery?
+
+  @@map("orders")
+}
+
+// Representa a "corrida" em si: o vínculo entre o pedido e o motoboy
+// que a executa, com todo o ciclo de status da entrega.
+model Delivery {
+  id          String         @id @default(uuid())
+  order       Order          @relation(fields: [orderId], references: [id])
+  orderId     String         @unique
+  courier     User?          @relation("CourierDeliveries", fields: [courierId], references: [id])
+  courierId   String?
+  status      DeliveryStatus @default(SEARCHING_COURIER)
+  distanceKm  Float?
+  earning     Decimal?       @db.Decimal(10, 2)
+  acceptedAt  DateTime?
+  pickedUpAt  DateTime?
+  deliveredAt DateTime?
+  rating      Int?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  offers       DeliveryOffer[]
+  transactions Transaction[]
+
+  @@map("deliveries")
+}
+
+// Oferta de corrida enviada a um motoboy específico, com prazo de 30s
+// para aceite (Épico 2 e 4). Se expirar ou for recusada, o sistema
+// repassa automaticamente para o próximo motoboy mais próximo.
+model DeliveryOffer {
+  id          String              @id @default(uuid())
+  delivery    Delivery            @relation(fields: [deliveryId], references: [id])
+  deliveryId  String
+  courier     User                @relation(fields: [courierId], references: [id])
+  courierId   String
+  status      DeliveryOfferStatus @default(PENDING)
+  distanceKm  Float
+  createdAt   DateTime            @default(now())
+  expiresAt   DateTime
+  respondedAt DateTime?
+
+  @@map("delivery_offers")
+}
+
+// Lançamento financeiro (ganho do motoboy, repasse, taxa da plataforma),
+// usado para montar o dashboard financeiro e os relatórios em PDF.
+model Transaction {
+  id         String          @id @default(uuid())
+  user       User            @relation(fields: [userId], references: [id])
+  userId     String
+  delivery   Delivery?       @relation(fields: [deliveryId], references: [id])
+  deliveryId String?
+  type       TransactionType
+  amount     Decimal         @db.Decimal(10, 2)
+  createdAt  DateTime        @default(now())
+
+  @@map("transactions")
+}

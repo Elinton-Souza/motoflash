@@ -1,0 +1,14 @@
+meta {
+  name: 5 - Iniciar Rota Cliente
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/deliveries/{{deliveryId}}/start-route
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{motoToken}}
+}

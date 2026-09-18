@@ -1,0 +1,14 @@
+meta {
+  name: 4 - Consultar Pedido
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/orders/{{orderId}}
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{restToken}}
+}

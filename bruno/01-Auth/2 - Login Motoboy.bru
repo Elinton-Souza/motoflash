@@ -1,0 +1,23 @@
+meta {
+  name: 2 - Login Motoboy
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "motoboy@motoflash.com",
+    "password": "123456"
+  }
+}
+
+script:post-response {
+  bru.setVar("motoToken", res.body.token);
+  bru.setVar("courierId", res.body.user.id);
+}

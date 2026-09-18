@@ -1,0 +1,14 @@
+meta {
+  name: 3 - Rejeitar Oferta (alternativo)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/deliveries/offers/{{offerId}}/reject
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{motoToken}}
+}

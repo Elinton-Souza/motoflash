@@ -1,0 +1,21 @@
+meta {
+  name: 3 - Solicitar Motoboy
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/orders/{{orderId}}/request-courier
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{restToken}}
+}
+
+script:post-response {
+  bru.setVar("deliveryId", res.body.id);
+  if (res.body.offers && res.body.offers.length > 0) {
+    bru.setVar("offerId", res.body.offers[res.body.offers.length - 1].id);
+  }
+}

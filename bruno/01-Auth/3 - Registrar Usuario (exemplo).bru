@@ -1,0 +1,21 @@
+meta {
+  name: 3 - Registrar Usuario (exemplo)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/auth/register
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Novo Motoboy",
+    "email": "novo.motoboy@motoflash.com",
+    "password": "123456",
+    "role": "MOTOBOY",
+    "vehiclePlate": "XYZ9A87"
+  }
+}

@@ -1,0 +1,16 @@
+# Node
+node_modules/
+
+# Variáveis de ambiente
+.env
+.env.local
+
+# Prisma client gerado
+back/generated/
+
+# Editores / SO
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.log
