@@ -1,5 +1,7 @@
 import { Bike, CircleDollarSign, ClipboardList, LayoutDashboard, UserRound } from 'lucide-react'
 import { Outlet, useLocation } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
+import { LiveNotice } from '../components/LiveNotice'
 import { Header } from '../components/Header'
 import { Sidebar, type NavigationItem } from '../components/Sidebar'
 
@@ -15,5 +17,6 @@ const titles: Record<string, string> = { dashboard: 'Visão geral', request: 'No
 
 export function MotoboyLayout() {
   const section = useLocation().pathname.split('/').pop() ?? 'dashboard'
-  return <div className="flex min-h-screen"><Sidebar items={items} /><div className="min-w-0 flex-1"><Header title={titles[section] ?? 'MotoFlash'} name="João Silva" role="Motoboy" /><main className="p-5 pb-24 md:p-8"><Outlet /></main></div></div>
+  const { user, profile } = useAuth()
+  return <div className="flex min-h-screen"><LiveNotice build={(event) => event === 'novo_pedido_disponivel' && section !== 'request' ? { text: 'Nova corrida disponível perto de você!', to: '/motoboy/request', linkLabel: 'Ver solicitação' } : null} /><Sidebar items={items} /><div className="min-w-0 flex-1"><Header title={titles[section] ?? 'MotoFlash'} name={profile?.name ?? user?.name ?? ''} role="Motoboy" /><main className="p-5 pb-24 md:p-8"><Outlet /></main></div></div>
 }

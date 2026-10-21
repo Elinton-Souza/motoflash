@@ -23,12 +23,18 @@ export class UserService {
     return safeUser
   }
 
-  updateProfile(userId: string, data: UpdateProfileInput) {
-    return userRepository.updateProfile(userId, data)
+  async updateProfile(userId: string, data: UpdateProfileInput) {
+    const { password, ...safeUser } = await userRepository.updateProfile(userId, data)
+    return safeUser
   }
 
-  setCourierStatus(userId: string, status: CourierStatus) {
-    return userRepository.updateCourierStatus(userId, status)
+  async setCourierStatus(userId: string, status: CourierStatus) {
+    const { password, ...safeUser } = await userRepository.updateCourierStatus(userId, status)
+    return safeUser
+  }
+
+  listConnectedCouriers() {
+    return userRepository.findConnectedCouriers()
   }
 
   // Atualização periódica da posição do motoboy. Além de guardar a
@@ -37,7 +43,7 @@ export class UserService {
   // para o restaurante acompanhar no mapa (Épico 3: "painel de
   // rastreamento... e a posição do motoboy no mapa").
   async updateCourierLocation(userId: string, lat: number, lng: number) {
-    const updated = await userRepository.updateCourierLocation(userId, lat, lng)
+    const { password, ...updated } = await userRepository.updateCourierLocation(userId, lat, lng)
 
     const activeDelivery = await deliveryRepository.findActiveByCourier(userId)
     if (activeDelivery) {

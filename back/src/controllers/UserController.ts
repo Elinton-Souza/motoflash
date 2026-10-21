@@ -54,6 +54,12 @@ export class UserController {
     res.status(200).json(updated)
   }
 
+  // Motoboys conectados, exibidos no painel do restaurante.
+  async listConnectedCouriers(_req: Request, res: Response) {
+    const couriers = await userService.listConnectedCouriers()
+    res.status(200).json(couriers)
+  }
+
   // Atualização periódica da posição do motoboy (usada na busca por proximidade).
   async updateCourierLocation(req: Request, res: Response) {
     const parsed = locationSchema.safeParse(req.body)

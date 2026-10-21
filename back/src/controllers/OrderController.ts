@@ -35,7 +35,7 @@ export class OrderController {
   }
 
   async getById(req: Request, res: Response) {
-    const order = await orderService.getById((req.params.id as string))
+    const order = await orderService.getOwnedById((req.params.id as string), req.user!.id)
     if (!order) {
       res.status(404).json({ error: "Pedido não encontrado" })
       return
@@ -44,12 +44,22 @@ export class OrderController {
   }
 
   async markReady(req: Request, res: Response) {
+    if (!(await orderService.getOwnedById((req.params.id as string), req.user!.id))) {
+      res.status(404).json({ error: "Pedido não encontrado" })
+      return
+    }
+
     const order = await orderService.markReady((req.params.id as string))
     res.status(200).json(order)
   }
 
   // Botão "Despachar" / "Solicitar motoboy" da fila do restaurante.
   async requestCourier(req: Request, res: Response) {
+    if (!(await orderService.getOwnedById((req.params.id as string), req.user!.id))) {
+      res.status(404).json({ error: "Pedido não encontrado" })
+      return
+    }
+
     try {
       const delivery = await orderService.requestCourier((req.params.id as string))
       res.status(200).json(delivery)

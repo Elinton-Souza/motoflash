@@ -64,6 +64,13 @@ export class DeliveryController {
     }
   }
 
+  // Oferta aguardando resposta do motoboy (complementa o evento novo_pedido_disponivel
+  // para quando a tela é aberta/recarregada depois do envio).
+  async getPendingOffer(req: Request, res: Response) {
+    const offer = await deliveryService.getPendingOfferForCourier(req.user!.id)
+    res.status(200).json(offer)
+  }
+
   async getActive(req: Request, res: Response) {
     const delivery = await deliveryService.getActiveForCourier(req.user!.id)
     res.status(200).json(delivery)

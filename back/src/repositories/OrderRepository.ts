@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma"
 import { OrderStatus, Prisma } from "../../generated/prisma/client"
+import { courierPublicFields } from "./publicFields"
 
 type CreateOrderInput = {
   restaurantId: string
@@ -20,14 +21,14 @@ export class OrderRepository {
   findById(id: string) {
     return prisma.order.findUnique({
       where: { id },
-      include: { delivery: { include: { courier: true } } }
+      include: { delivery: { include: { courier: { select: courierPublicFields } } } }
     })
   }
 
   findByRestaurant(restaurantId: string, status?: OrderStatus) {
     return prisma.order.findMany({
       where: { restaurantId, ...(status ? { status } : {}) },
-      include: { delivery: { include: { courier: true } } },
+      include: { delivery: { include: { courier: { select: courierPublicFields } } } },
       orderBy: { createdAt: "desc" }
     })
   }

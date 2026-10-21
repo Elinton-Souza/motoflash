@@ -1,12 +1,14 @@
 import type { LucideIcon } from 'lucide-react'
 import { LogOut } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useAuth } from '../auth/useAuth'
 import { Logo } from './Logo'
 
 export type NavigationItem = { label: string; to: string; icon: LucideIcon }
 
 export function Sidebar({ items }: { items: NavigationItem[] }) {
   const navigate = useNavigate()
+  const { logout } = useAuth()
   return (
     <>
     <aside className="hidden min-h-screen w-64 shrink-0 flex-col border-r border-slate-200 bg-white px-4 py-6 md:flex">
@@ -18,7 +20,7 @@ export function Sidebar({ items }: { items: NavigationItem[] }) {
           </NavLink>
         ))}
       </nav>
-      <button type="button" onClick={() => navigate('/')} className="mt-auto flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800">
+      <button type="button" onClick={() => { logout(); navigate('/', { replace: true }) }} className="mt-auto flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-slate-500 transition hover:bg-slate-50 hover:text-slate-800">
         <LogOut size={19} />Sair
       </button>
     </aside>

@@ -27,6 +27,14 @@ export class DeliveryService {
     return deliveryRepository.findById(delivery.id)
   }
 
+  // Nova tentativa quando nenhum motoboy foi encontrado na primeira busca.
+  async restartDispatch(deliveryId: string, order: Order) {
+    await deliveryRepository.updateStatus(deliveryId, "SEARCHING_COURIER")
+    await this.dispatchToNextCourier(deliveryId, order, [])
+
+    return deliveryRepository.findById(deliveryId)
+  }
+
   // Localiza o motoboy online mais próximo (via PostGIS), cria uma oferta
   // com prazo de 30s e emite o evento "novo_pedido_disponivel" — a tela
   // "Nova corrida" (restaurante, distância, ganho estimado = deliveryFee).
@@ -92,7 +100,7 @@ export class DeliveryService {
     if (offer.status !== "PENDING") throw new Error("Esta corrida já não está mais disponível")
 
     await deliveryRepository.updateOfferStatus(offerId, "ACCEPTED")
-    const delivery = await deliveryRepository.assignCourier(offer.deliveryId, courierId)
+    const delivery = await deliveryRepository.assignCourier(offer.deliveryId, courierId, offer.distanceKm)
     await userRepository.updateCourierStatus(courierId, "ON_DELIVERY")
 
     // Notificação visual em tempo real no painel do restaurante (nome do
@@ -208,6 +216,10 @@ export class DeliveryService {
     })
 
     return updated
+  }
+
+  getPendingOfferForCourier(courierId: string) {
+    return deliveryRepository.findPendingOfferForCourier(courierId)
   }
 
   getActiveForCourier(courierId: string) {
