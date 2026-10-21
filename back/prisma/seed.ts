@@ -35,6 +35,36 @@ async function main() {
     }
   })
 
+  // Segundo motoboy e segundo restaurante, para demonstrar o repasse
+  // automático da corrida quando um motoboy recusa ou não responde.
+  const courier2 = await prisma.user.upsert({
+    where: { email: "motoboy2@motoflash.com" },
+    update: {},
+    create: {
+      name: "Mateus Rocha",
+      email: "motoboy2@motoflash.com",
+      password,
+      role: "MOTOBOY",
+      vehiclePlate: "XYZ9K87",
+      courierStatus: "OFFLINE",
+      currentLat: -23.5589,
+      currentLng: -46.6612
+    }
+  })
+
+  const restaurant2 = await prisma.user.upsert({
+    where: { email: "restaurante2@motoflash.com" },
+    update: {},
+    create: {
+      name: "Beatriz Lima",
+      email: "restaurante2@motoflash.com",
+      password,
+      role: "RESTAURANT",
+      restaurantName: "Burger House",
+      restaurantAddress: "Av. Paulista, 1000 - Bela Vista"
+    }
+  })
+
   const admin = await prisma.user.upsert({
     where: { email: "admin@motoflash.com" },
     update: {},
@@ -48,7 +78,9 @@ async function main() {
 
   console.log("Seed concluído:", {
     restaurant: restaurant.email,
+    restaurant2: restaurant2.email,
     courier: courier.email,
+    courier2: courier2.email,
     admin: admin.email
   })
 }

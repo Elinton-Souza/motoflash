@@ -8,6 +8,7 @@ const deliveryController = new DeliveryController()
 
 router.use(authMiddleware, roleMiddleware("MOTOBOY"))
 
+router.get("/offers/pending", (req, res) => deliveryController.getPendingOffer(req, res))
 router.get("/active", (req, res) => deliveryController.getActive(req, res))
 router.post("/offers/:offerId/accept", (req, res) => deliveryController.acceptOffer(req, res))
 router.post("/offers/:offerId/reject", (req, res) => deliveryController.rejectOffer(req, res))

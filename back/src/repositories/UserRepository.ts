@@ -45,6 +45,15 @@ export class UserRepository {
     return prisma.user.update({ where: { id }, data: { currentLat: lat, currentLng: lng } })
   }
 
+  // Motoboys conectados (livres ou em entrega), exibidos ao restaurante.
+  findConnectedCouriers() {
+    return prisma.user.findMany({
+      where: { role: "MOTOBOY", courierStatus: { in: ["ONLINE", "ON_DELIVERY"] } },
+      select: { id: true, name: true, ratingAvg: true, vehiclePlate: true, courierStatus: true },
+      orderBy: { name: "asc" }
+    })
+  }
+
   // Busca motoboys "Online" dentro de um raio (em metros), ordenados do
   // mais próximo para o mais distante, usando a extensão PostGIS
   // (ST_DWithin + ST_Distance sobre geografia) — Épico 4.

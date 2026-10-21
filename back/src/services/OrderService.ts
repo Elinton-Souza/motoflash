@@ -42,6 +42,12 @@ export class OrderService {
     return orderRepository.findById(id)
   }
 
+  // Pedido só é visível/alterável pelo restaurante que o criou.
+  async getOwnedById(id: string, restaurantId: string) {
+    const order = await orderRepository.findById(id)
+    return order && order.restaurantId === restaurantId ? order : null
+  }
+
   markReady(id: string) {
     return orderRepository.updateStatus(id, "READY", { readyAt: new Date() })
   }
@@ -50,6 +56,10 @@ export class OrderService {
   async requestCourier(orderId: string) {
     const order = await orderRepository.findById(orderId)
     if (!order) throw new Error("Pedido não encontrado")
+    // Nova tentativa quando a busca anterior não encontrou motoboy.
+    if (order.delivery?.status === "NO_COURIER_FOUND") {
+      return deliveryService.restartDispatch(order.delivery.id, order)
+    }
     if (order.status !== "READY") {
       throw new Error("O pedido precisa estar marcado como pronto antes de solicitar um motoboy")
     }

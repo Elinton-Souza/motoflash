@@ -12,7 +12,6 @@ export function Header({ title, name, role }: HeaderProps) {
       <div className="flex items-center gap-4">
         <button type="button" className="relative grid size-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100" aria-label="Notificações">
           <Bell size={19} />
-          <span className="absolute right-2.5 top-2.5 size-1.5 rounded-full bg-brand ring-2 ring-white" />
         </button>
         <div className="flex items-center gap-2.5 border-l border-slate-200 pl-4">
           <span className="grid size-9 place-items-center rounded-full bg-orange-100 text-sm font-bold text-brand">{name.charAt(0)}</span>

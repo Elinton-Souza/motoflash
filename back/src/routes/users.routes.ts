@@ -11,6 +11,7 @@ router.use(authMiddleware)
 router.get("/me", (req, res) => userController.me(req, res))
 router.put("/me", (req, res) => userController.updateProfile(req, res))
 router.put("/me/status", roleMiddleware("MOTOBOY"), (req, res) => userController.updateCourierStatus(req, res))
+router.get("/couriers", roleMiddleware("RESTAURANT"), (req, res) => userController.listConnectedCouriers(req, res))
 router.put("/me/location", roleMiddleware("MOTOBOY"), (req, res) => userController.updateCourierLocation(req, res))
 
 export default router
