@@ -220,7 +220,7 @@ Também é possível criar novas contas pela tela de login, em **"Criar conta"**
 
 Fluxo completo de uma entrega, com duas abas abertas em http://localhost:5173:
 
-1. **Aba 1, motoboy:** entre com `motoboy@motoflash.com` e clique em **"Você está offline"** para ficar online.
+1. **Aba 1, motoboy:** entre com `motoboy@motoflash.com`. O botão no canto superior direito precisa mostrar **"Você está online"**. Se mostrar "Você está offline", clique nele.
 2. **Aba 2, restaurante:** entre com `restaurante@motoflash.com`, vá em **Nova entrega**, preencha os dados e clique em **Solicitar motoboy**.
 3. **Motoboy:** aparece o aviso **"Nova corrida disponível"**. Abra a solicitação e clique em **Aceitar entrega** em até 30 segundos.
 4. **Restaurante:** recebe o aviso de aceite e vê o **código de retirada** na tela de acompanhamento.
