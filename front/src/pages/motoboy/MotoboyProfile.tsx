@@ -1,0 +1,13 @@
+import { useState, type FormEvent } from 'react'
+import { BadgeCheck, Bike, Save, ShieldCheck } from 'lucide-react'
+import { Button } from '../../components/Button'
+import { Card } from '../../components/Card'
+import { Input } from '../../components/Input'
+import { StatusBadge } from '../../components/StatusBadge'
+
+export function MotoboyProfile() {
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  function submit(event: FormEvent<HTMLFormElement>) { event.preventDefault(); setSaving(true); setSaved(false); window.setTimeout(() => { setSaving(false); setSaved(true) }, 500) }
+  return <div className="mx-auto max-w-4xl space-y-6"><div className="flex flex-wrap items-center justify-between gap-4"><div><p className="text-sm text-muted">Conta MotoFlash</p><h2 className="mt-1 text-2xl font-bold tracking-tight text-ink">Meu perfil</h2></div><StatusBadge status="online">Online</StatusBadge></div><div className="grid gap-6 lg:grid-cols-[220px_minmax(0,1fr)]"><Card className="flex flex-col items-center p-6 text-center"><span className="grid size-20 place-items-center rounded-full bg-orange-100 text-2xl font-bold text-brand">J</span><h3 className="mt-4 font-bold text-ink">João Silva</h3><p className="mt-1 text-sm text-muted">Motoboy parceiro</p><div className="mt-5 flex items-center gap-1 text-sm font-semibold text-amber-600">★ 4,9 <span className="font-normal text-muted">(128 entregas)</span></div></Card><Card className="p-6 sm:p-7"><p className="font-bold text-ink">Informações pessoais</p><p className="mt-1 text-sm text-muted">Mantenha seus dados atualizados.</p><form onSubmit={submit} className="mt-6 space-y-5"><div className="grid gap-5 sm:grid-cols-2"><Input id="name" label="Nome completo" defaultValue="João Silva" required /><Input id="phone" label="Telefone" defaultValue="(11) 99999-1234" required /></div><Input id="email" label="E-mail" type="email" defaultValue="joao@email.com" required />{saved && <p className="rounded-xl bg-emerald-50 px-4 py-3 text-sm text-emerald-700">Dados atualizados com sucesso.</p>}<Button type="submit" disabled={saving}>{saving ? 'Salvando...' : <><Save size={17} />Salvar alterações</>}</Button></form></Card></div><div className="grid gap-4 sm:grid-cols-3">{[[Bike, 'Veículo verificado', 'Moto Honda CG 160'], [ShieldCheck, 'Documentação', 'Válida até dez/2027'], [BadgeCheck, 'Conta aprovada', 'Parceiro ativo']].map(([Icon, title, description]) => { const RenderIcon = Icon as typeof Bike; return <Card key={title as string} className="p-5"><RenderIcon size={20} className="text-brand" /><p className="mt-4 text-sm font-bold text-ink">{title as string}</p><p className="mt-1 text-xs text-muted">{description as string}</p></Card> })}</div></div>
+}
