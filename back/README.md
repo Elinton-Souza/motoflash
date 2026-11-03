@@ -28,21 +28,31 @@ src/
 - `Delivery` — a "corrida": vínculo entre o pedido e o motoboy, com o ciclo de status.
 - `DeliveryOffer` — cada oferta de corrida enviada a um motoboy, com prazo de 30s.
 - `Transaction` — lançamentos financeiros (repasses ao motoboy).
+- `PasswordReset` — códigos de recuperação de senha (guardados em hash, válidos por 15 min).
+
+Serviços de apoio:
+
+- `WhatsAppService` / `NotificationService` — mensagens pelo WhatsApp (Twilio,
+  Meta ou link `wa.me` quando nada está configurado).
+- `GeocodingService` — endereço → coordenadas pelo Nominatim (OpenStreetMap).
 
 ## Fluxo principal (Épicos 2, 3 e 4)
 
 1. Restaurante cria o pedido (`POST /orders`) e marca como pronto (`PUT /orders/:id/ready`).
+   O pedido nasce com dois códigos: `pickupCode` (retirada) e `deliveryCode`,
+   que vai para o WhatsApp do cliente.
 2. Restaurante solicita um motoboy (`POST /orders/:id/request-courier`).
 3. O backend busca, via PostGIS (`ST_DWithin` / `ST_Distance`), o motoboy "Online"
-   mais próximo e envia a oferta (evento `novo_pedido_disponivel`) com prazo de 30s.
+   mais próximo do restaurante e envia a oferta (evento `novo_pedido_disponivel`) com prazo de 30s.
 4. Se o motoboy não responder a tempo, ou recusar, a corrida é repassada
    automaticamente para o próximo motoboy mais próximo.
 5. Motoboy aceita (`POST /deliveries/offers/:offerId/accept`) → restaurante recebe
    o evento `pedido_aceito` com nome do motoboy e distância.
 6. Motoboy digita o código de retirada (`POST /deliveries/:id/validate-code`) →
    se bater com o código do pedido, libera a rota até o cliente e emite `codigo_validado`.
-7. Motoboy finaliza a entrega (`POST /deliveries/:id/complete`) → gera o repasse
-   (`earning`) e libera o motoboy para novas corridas.
+7. Motoboy finaliza a entrega (`POST /deliveries/:id/complete` com `{ code }`,
+   o código que o cliente recebeu no WhatsApp) → gera o repasse (`earning`) e
+   libera o motoboy para novas corridas.
 8. Dashboards financeiros: `GET /finance/courier/daily` (Carlos) e
    `GET /finance/restaurant/summary` (Ana).
 
@@ -58,7 +68,7 @@ npm install
 npx prisma migrate deploy
 # (em desenvolvimento, "npx prisma migrate dev" também funciona)
 
-npm run prisma:seed   # cria um restaurante, um motoboy e um admin de exemplo
+npm run prisma:seed   # cria restaurantes, motoboys e um admin de exemplo
 
 npm run dev            # http://localhost:3000
 ```

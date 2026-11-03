@@ -1,23 +1,19 @@
-import { Bell, ChevronDown } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { LogOut } from 'lucide-react'
 
-type HeaderProps = { title: string; name: string; role: string }
+type HeaderProps = { title: string; name: string; role: string; onLogout: () => void; extra?: ReactNode }
 
-export function Header({ title, name, role }: HeaderProps) {
+export function Header({ title, name, role, onLogout, extra }: HeaderProps) {
   return (
-    <header className="flex h-[72px] items-center justify-between border-b border-slate-200 bg-white px-5 md:h-20 md:px-8">
-      <div>
-        <h1 className="text-xl font-bold tracking-tight text-ink">{title}</h1>
-        <p className="mt-0.5 text-xs text-muted">{role}</p>
-      </div>
-      <div className="flex items-center gap-4">
-        <button type="button" className="relative grid size-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100" aria-label="Notificações">
-          <Bell size={19} />
-        </button>
-        <div className="flex items-center gap-2.5 border-l border-slate-200 pl-4">
-          <span className="grid size-9 place-items-center rounded-full bg-orange-100 text-sm font-bold text-brand">{name.charAt(0)}</span>
-          <div className="hidden text-left sm:block"><p className="text-sm font-semibold text-ink">{name}</p><p className="text-xs text-muted">{role}</p></div>
-          <ChevronDown size={16} className="text-slate-400" />
+    <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-3 border-b border-slate-200 bg-white/95 px-5 backdrop-blur md:h-[72px] md:px-8">
+      <h1 className="truncate text-lg font-bold tracking-tight text-ink md:text-xl">{title}</h1>
+      <div className="flex items-center gap-3">
+        {extra}
+        <div className="hidden items-center gap-2.5 sm:flex">
+          <span className="grid size-9 place-items-center rounded-full bg-flash-soft text-sm font-bold text-brand">{name.charAt(0)}</span>
+          <div className="text-left"><p className="max-w-40 truncate text-sm font-semibold text-ink">{name}</p><p className="text-xs text-muted">{role}</p></div>
         </div>
+        <button type="button" onClick={onLogout} className="grid size-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-ink md:hidden" aria-label="Sair"><LogOut size={19} /></button>
       </div>
     </header>
   )

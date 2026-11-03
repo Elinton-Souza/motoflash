@@ -2,10 +2,10 @@ import { prisma } from "../lib/prisma"
 import { DeliveryStatus, DeliveryOfferStatus, Prisma } from "../../generated/prisma/client"
 import { courierPublicFields, restaurantPublicFields } from "./publicFields"
 
-// O motoboy nunca recebe o código de retirada pela API: ele precisa
-// digitá-lo no balcão do restaurante.
+// O motoboy nunca recebe os códigos pela API: o de retirada ele recebe
+// no balcão do restaurante e o de entrega, do cliente na porta.
 const orderForCourier = {
-  omit: { pickupCode: true },
+  omit: { pickupCode: true, deliveryCode: true },
   include: { restaurant: { select: restaurantPublicFields } }
 } as const
 
@@ -17,7 +17,11 @@ export class DeliveryRepository {
   findById(id: string) {
     return prisma.delivery.findUnique({
       where: { id },
-      include: { order: true, courier: { select: courierPublicFields }, offers: true }
+      include: {
+        order: { include: { restaurant: { select: restaurantPublicFields } } },
+        courier: { select: courierPublicFields },
+        offers: true
+      }
     })
   }
 
@@ -54,7 +58,10 @@ export class DeliveryRepository {
     return prisma.delivery.update({
       where: { id },
       data: { courierId, distanceKm, status: "COURIER_ASSIGNED", acceptedAt: new Date() },
-      include: { order: true, courier: { select: courierPublicFields } }
+      include: {
+        order: { include: { restaurant: { select: restaurantPublicFields } } },
+        courier: { select: courierPublicFields }
+      }
     })
   }
 
@@ -75,6 +82,18 @@ export class DeliveryRepository {
 
   findOffer(id: string) {
     return prisma.deliveryOffer.findUnique({ where: { id } })
+  }
+
+  expirePendingOffers(deliveryId: string) {
+    return prisma.deliveryOffer.updateMany({
+      where: { deliveryId, status: "PENDING" },
+      data: { status: "EXPIRED", respondedAt: new Date() }
+    })
+  }
+
+  // Lançamento do repasse ao motoboy (tabela de transações financeiras).
+  createEarning(userId: string, deliveryId: string, amount: number) {
+    return prisma.transaction.create({ data: { userId, deliveryId, type: "EARNING", amount } })
   }
 
   updateOfferStatus(id: string, status: DeliveryOfferStatus) {

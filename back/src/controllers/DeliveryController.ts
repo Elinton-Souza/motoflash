@@ -5,7 +5,7 @@ import { DeliveryService } from "../services/DeliveryService"
 const deliveryService = new DeliveryService()
 
 const codeSchema = z.object({
-  code: z.string().length(4)
+  code: z.string().regex(/^\d{4,6}$/)
 })
 
 export class DeliveryController {
@@ -54,10 +54,12 @@ export class DeliveryController {
     }
   }
 
-  // Botão único "Finalizar entrega".
+  // Botão "Finalizar entrega", com o código que o cliente recebeu no WhatsApp.
   async complete(req: Request, res: Response) {
+    const code = typeof req.body?.code === "string" ? req.body.code.trim() : undefined
+
     try {
-      const delivery = await deliveryService.completeDelivery((req.params.id as string), req.user!.id)
+      const delivery = await deliveryService.completeDelivery((req.params.id as string), req.user!.id, code)
       res.status(200).json(delivery)
     } catch (error) {
       res.status(400).json({ error: (error as Error).message })

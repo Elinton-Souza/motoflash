@@ -6,9 +6,16 @@ meta {
 
 post {
   url: {{baseUrl}}/deliveries/{{deliveryId}}/complete
+  body: json
   auth: none
 }
 
 headers {
   Authorization: Bearer {{motoToken}}
+}
+
+body:json {
+  {
+    "code": "{{deliveryCode}}"
+  }
 }
