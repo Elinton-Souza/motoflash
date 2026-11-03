@@ -13,5 +13,7 @@ router.get("/", (req, res) => orderController.list(req, res))
 router.get("/:id", (req, res) => orderController.getById(req, res))
 router.put("/:id/ready", (req, res) => orderController.markReady(req, res))
 router.post("/:id/request-courier", (req, res) => orderController.requestCourier(req, res))
+router.post("/:id/cancel", (req, res) => orderController.cancel(req, res))
+router.post("/:id/notify-customer", (req, res) => orderController.notifyCustomer(req, res))
 
 export default router

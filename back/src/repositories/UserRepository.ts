@@ -9,6 +9,8 @@ type CreateUserInput = {
   role: Role
   restaurantName?: string
   restaurantAddress?: string
+  restaurantLat?: number | null
+  restaurantLng?: number | null
   vehiclePlate?: string
 }
 
@@ -17,6 +19,8 @@ type UpdateProfileInput = Partial<{
   phone: string
   restaurantName: string
   restaurantAddress: string
+  restaurantLat: number | null
+  restaurantLng: number | null
   vehiclePlate: string
 }>
 
@@ -35,6 +39,10 @@ export class UserRepository {
 
   updateProfile(id: string, data: UpdateProfileInput) {
     return prisma.user.update({ where: { id }, data })
+  }
+
+  updatePassword(id: string, password: string) {
+    return prisma.user.update({ where: { id }, data: { password } })
   }
 
   updateCourierStatus(id: string, courierStatus: CourierStatus) {
