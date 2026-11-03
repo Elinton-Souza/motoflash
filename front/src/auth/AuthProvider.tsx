@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { api, loadSession, saveSession, setUnauthorizedHandler } from '../lib/api'
 import { connectRealtime } from '../lib/realtime'
-import type { Profile, Session } from '../types/api'
+import type { Profile, Role, Session } from '../types/api'
 import { AuthContext, type RegisterInput } from './context'
 
 export function AuthProvider({ children }: { children: ReactNode }) {
@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(
-    async (email: string, password: string) => startSession(await api<Session>('/auth/login', { method: 'POST', body: { email, password } })),
+    async (email: string, password: string, role?: Exclude<Role, 'ADMIN'>) => startSession(await api<Session>('/auth/login', { method: 'POST', body: { email, password, role } })),
     [startSession],
   )
 
