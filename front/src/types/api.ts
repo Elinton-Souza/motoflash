@@ -18,6 +18,8 @@ export interface Profile {
   createdAt: string
   restaurantName: string | null
   restaurantAddress: string | null
+  restaurantLat: number | null
+  restaurantLng: number | null
   vehiclePlate: string | null
   courierStatus: CourierStatus | null
   currentLat: number | null
@@ -26,8 +28,8 @@ export interface Profile {
   ratingCount: number
 }
 
-export interface CourierSummary { id: string; name: string; phone: string | null; vehiclePlate: string | null; ratingAvg: number | null; ratingCount: number }
-export interface RestaurantSummary { id: string; name: string; phone: string | null; restaurantName: string | null; restaurantAddress: string | null }
+export interface CourierSummary { id: string; name: string; phone: string | null; vehiclePlate: string | null; ratingAvg: number | null; ratingCount: number; currentLat: number | null; currentLng: number | null }
+export interface RestaurantSummary { id: string; name: string; phone: string | null; restaurantName: string | null; restaurantAddress: string | null; restaurantLat: number | null; restaurantLng: number | null }
 export interface ConnectedCourier { id: string; name: string; ratingAvg: number | null; vehiclePlate: string | null; courierStatus: CourierStatus }
 
 export interface Delivery {
@@ -49,12 +51,14 @@ export interface Order {
   number: number
   restaurantId: string
   customerName: string
+  customerPhone: string | null
   customerAddress: string
   customerLat: number
   customerLng: number
   value: Money
   deliveryFee: Money
   pickupCode?: string
+  deliveryCode?: string | null
   status: OrderStatus
   createdAt: string
   deliveredAt: string | null
@@ -62,8 +66,11 @@ export interface Order {
   restaurant?: RestaurantSummary
 }
 
-// Pedido como o motoboy enxerga (sem o código de retirada, com o restaurante).
-export type CourierOrder = Omit<Order, 'pickupCode'> & { restaurant: RestaurantSummary }
+export interface WhatsAppResult { sent: boolean; provider: string; link: string | null; error?: string }
+export type CreatedOrder = Order & { whatsapp: WhatsAppResult }
+
+// Pedido como o motoboy enxerga (sem os códigos, com o restaurante).
+export type CourierOrder = Omit<Order, 'pickupCode' | 'deliveryCode'> & { restaurant: RestaurantSummary }
 export type CourierDelivery = Delivery & { order: CourierOrder }
 
 export interface Offer {

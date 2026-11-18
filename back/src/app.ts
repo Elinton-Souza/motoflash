@@ -5,6 +5,7 @@ import usersRoutes from "./routes/users.routes"
 import ordersRoutes from "./routes/orders.routes"
 import deliveriesRoutes from "./routes/deliveries.routes"
 import financeRoutes from "./routes/finance.routes"
+import geoRoutes from "./routes/geo.routes"
 
 const app = express()
 
@@ -16,6 +17,7 @@ app.use("/users", usersRoutes)
 app.use("/orders", ordersRoutes)
 app.use("/deliveries", deliveriesRoutes)
 app.use("/finance", financeRoutes)
+app.use("/geo", geoRoutes)
 
 app.get("/", (_req, res) => {
   res.send("API Motoflash: marketplace de entregas por motoboy")

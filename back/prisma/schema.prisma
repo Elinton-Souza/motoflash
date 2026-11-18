@@ -66,6 +66,10 @@ model User {
   // Perfil Restaurante (Ana/Beatriz)
   restaurantName    String? @db.VarChar(80)
   restaurantAddress String? @db.VarChar(160)
+  // Coordenadas do endereço de coleta (geocodificado no cadastro). A busca
+  // de motoboys por proximidade parte daqui.
+  restaurantLat     Float?
+  restaurantLng     Float?
 
   // Perfil Motoboy (Carlos)
   vehiclePlate  String?        @db.VarChar(10)
@@ -79,6 +83,7 @@ model User {
   deliveriesAsCourier Delivery[]      @relation("CourierDeliveries")
   offers              DeliveryOffer[]
   transactions        Transaction[]
+  passwordResets      PasswordReset[]
 
   @@map("users")
 }
@@ -92,12 +97,16 @@ model Order {
   restaurant   User        @relation("RestaurantOrders", fields: [restaurantId], references: [id])
   restaurantId String
   customerName String      @db.VarChar(80)
+  customerPhone String?    @db.VarChar(20)
   customerAddress String   @db.VarChar(160)
   customerLat  Float
   customerLng  Float
   value        Decimal     @db.Decimal(10, 2)
   deliveryFee  Decimal     @default(0) @db.Decimal(10, 2)
   pickupCode   String      @db.VarChar(6)
+  // Código que o cliente recebe pelo WhatsApp e informa ao motoboy na
+  // porta. Sem ele a entrega não pode ser finalizada.
+  deliveryCode String?     @db.VarChar(6)
   status       OrderStatus @default(PREPARING)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -164,4 +173,20 @@ model Transaction {
   createdAt  DateTime        @default(now())
 
   @@map("transactions")
+}
+
+// Pedido de recuperação de senha. O código de 6 dígitos vai para o
+// WhatsApp cadastrado e só é guardado em hash.
+model PasswordReset {
+  id        String    @id @default(uuid())
+  user      User      @relation(fields: [userId], references: [id])
+  userId    String
+  codeHash  String    @db.VarChar(100)
+  attempts  Int       @default(0)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+  @@map("password_resets")
 }

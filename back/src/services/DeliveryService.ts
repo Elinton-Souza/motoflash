@@ -2,11 +2,14 @@ import { DeliveryRepository } from "../repositories/DeliveryRepository"
 import { OrderRepository } from "../repositories/OrderRepository"
 import { UserRepository } from "../repositories/UserRepository"
 import { emitToUser } from "../lib/socket"
+import { NotificationService } from "./NotificationService"
+import { haversineKm } from "./GeocodingService"
 import type { Order } from "../../generated/prisma/client"
 
 const deliveryRepository = new DeliveryRepository()
 const orderRepository = new OrderRepository()
 const userRepository = new UserRepository()
+const notifications = new NotificationService()
 
 // Timeout de aceite da corrida (Épico 2/4): 30 segundos — igual ao
 // contador exibido na tela "Nova corrida" do motoboy.
@@ -35,14 +38,30 @@ export class DeliveryService {
     return deliveryRepository.findById(deliveryId)
   }
 
-  // Localiza o motoboy online mais próximo (via PostGIS), cria uma oferta
-  // com prazo de 30s e emite o evento "novo_pedido_disponivel" — a tela
-  // "Nova corrida" (restaurante, distância, ganho estimado = deliveryFee).
-  // Se ninguém for encontrado, marca a entrega como sem motoboy disponível.
+  // Restaurante cancela o pedido enquanto ainda procura motoboy.
+  async cancelSearch(deliveryId: string) {
+    await deliveryRepository.expirePendingOffers(deliveryId)
+    return deliveryRepository.updateStatus(deliveryId, "CANCELED")
+  }
+
+  // Localiza o motoboy online mais próximo do restaurante (via PostGIS),
+  // cria uma oferta com prazo de 30s e emite o evento
+  // "novo_pedido_disponivel" — a tela "Nova corrida" (restaurante,
+  // distância, ganho estimado = deliveryFee). Se ninguém for encontrado,
+  // marca a entrega como sem motoboy disponível.
   private async dispatchToNextCourier(deliveryId: string, order: Order, excludedCourierIds: string[]) {
+    // A corrida começa no balcão: a busca usa o endereço do restaurante e,
+    // se ele ainda não tiver coordenadas, o endereço do cliente.
+    const restaurant = await userRepository.findById(order.restaurantId)
+    const origin =
+      restaurant?.restaurantLat != null && restaurant.restaurantLng != null
+        ? { lat: restaurant.restaurantLat, lng: restaurant.restaurantLng }
+        : { lat: order.customerLat, lng: order.customerLng }
+    const routeKm = haversineKm(origin, { lat: order.customerLat, lng: order.customerLng })
+
     const nearby = await userRepository.findAvailableCouriersNearby(
-      order.customerLat,
-      order.customerLng,
+      origin.lat,
+      origin.lng,
       SEARCH_RADIUS_METERS,
       excludedCourierIds
     )
@@ -65,7 +84,8 @@ export class DeliveryService {
       customerAddress: order.customerAddress,
       value: Number(order.value),
       deliveryFee: Number(order.deliveryFee), // "Ganho estimado" exibido na tela do motoboy
-      distanceKm,
+      distanceKm, // motoboy -> restaurante
+      routeKm, // restaurante -> cliente
       expiresInSeconds: OFFER_TIMEOUT_MS / 1000
     })
 
@@ -113,7 +133,14 @@ export class DeliveryService {
       status: delivery.status
     })
 
-    return delivery
+    // Código restaurante-motoboy também vai para o WhatsApp do restaurante,
+    // para o atendente conferir no balcão.
+    if (delivery.courier) {
+      void notifications.sendRestaurantPickup(delivery.order, delivery.order.restaurant, delivery.courier)
+    }
+
+    const { pickupCode, deliveryCode, ...order } = delivery.order
+    return { ...delivery, order }
   }
 
   // Motoboy recusa a corrida (botão "Recusar"). O timeout de 30s cai no
@@ -184,20 +211,29 @@ export class DeliveryService {
       status: updated.status
     })
 
+    // Avisa o cliente pelo WhatsApp que o pedido saiu, lembrando o código.
+    if (delivery.courier && delivery.order.deliveryCode) {
+      void notifications.sendCustomerOnTheWay(delivery.order, delivery.courier)
+    }
+
     return updated
   }
 
-  // Botão único "Finalizar entrega": só pode ser acionado depois que a
-  // rota até o cliente foi iniciada (IN_DELIVERY), reproduzindo o passo a
-  // passo Retirado → Em entrega → Entregue do painel de rastreamento.
+  // Botão "Finalizar entrega": só pode ser acionado depois que a rota até
+  // o cliente foi iniciada (IN_DELIVERY) e com o código que o cliente
+  // recebeu pelo WhatsApp (confirmação cliente-motoboy).
   // Calcula o repasse do motoboy (earning = taxa/deliveryFee do pedido) e
   // libera o motoboy para novas corridas.
-  async completeDelivery(deliveryId: string, courierId: string) {
+  async completeDelivery(deliveryId: string, courierId: string, code?: string) {
     const delivery = await deliveryRepository.findById(deliveryId)
     if (!delivery) throw new Error("Entrega não encontrada")
     if (delivery.courierId !== courierId) throw new Error("Você não está vinculado a esta entrega")
     if (delivery.status !== "IN_DELIVERY") {
       throw new Error("A entrega só pode ser finalizada depois que a rota até o cliente foi iniciada")
+    }
+    // Pedidos antigos (antes do código de entrega) não exigem o código.
+    if (delivery.order.deliveryCode && delivery.order.deliveryCode !== code) {
+      throw new Error("Código de confirmação do cliente inválido")
     }
 
     const earning = Number(delivery.order.deliveryFee ?? 0)
@@ -206,6 +242,7 @@ export class DeliveryService {
       deliveredAt: new Date(),
       earning
     })
+    await deliveryRepository.createEarning(courierId, deliveryId, earning)
     await orderRepository.updateStatus(delivery.orderId, "DELIVERED", { deliveredAt: new Date() })
     await userRepository.updateCourierStatus(courierId, "ONLINE")
 

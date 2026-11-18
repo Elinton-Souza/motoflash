@@ -1,20 +1,21 @@
-import { ChartNoAxesCombined, LayoutDashboard, MapPinned, Settings, Truck } from 'lucide-react'
-import { Outlet, useLocation } from 'react-router-dom'
+import { ChartNoAxesCombined, ClipboardList, LayoutDashboard, MapPinned, Plus, Settings } from 'lucide-react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth/useAuth'
-import { LiveNotice } from '../components/LiveNotice'
-import type { RealtimeEvent } from '../lib/realtime'
 import { Header } from '../components/Header'
+import { LiveNotice } from '../components/LiveNotice'
 import { Sidebar, type NavigationItem } from '../components/Sidebar'
+import type { RealtimeEvent } from '../lib/realtime'
 
 const items: NavigationItem[] = [
-  { label: 'Dashboard', to: '/restaurant/dashboard', icon: LayoutDashboard },
-  { label: 'Nova entrega', to: '/restaurant/new-delivery', icon: Truck },
-  { label: 'Acompanhamento', to: '/restaurant/tracking', icon: MapPinned },
-  { label: 'Histórico / Financeiro', to: '/restaurant/finance', icon: ChartNoAxesCombined },
-  { label: 'Configurações', to: '/restaurant/settings', icon: Settings },
+  { label: 'Visão geral', short: 'Início', to: '/restaurant/dashboard', icon: LayoutDashboard },
+  { label: 'Pedidos', to: '/restaurant/orders', icon: ClipboardList },
+  { label: 'Nova entrega', short: 'Nova', to: '/restaurant/new-delivery', icon: Plus },
+  { label: 'Acompanhamento', short: 'Mapa', to: '/restaurant/tracking', icon: MapPinned },
+  { label: 'Financeiro', to: '/restaurant/finance', icon: ChartNoAxesCombined },
+  { label: 'Configurações', short: 'Ajustes', to: '/restaurant/settings', icon: Settings },
 ]
 
-const titles: Record<string, string> = { dashboard: 'Visão geral', 'new-delivery': 'Nova entrega', tracking: 'Acompanhamento da entrega', finance: 'Histórico e financeiro', settings: 'Configurações' }
+const titles: Record<string, string> = { dashboard: 'Visão geral', orders: 'Pedidos', 'new-delivery': 'Nova entrega', tracking: 'Acompanhamento', finance: 'Financeiro', settings: 'Configurações' }
 
 type DeliveryEventPayload = { orderId?: string; courierName?: string }
 
@@ -28,7 +29,23 @@ function buildNotice(event: RealtimeEvent, payload: unknown) {
 }
 
 export function RestaurantLayout() {
+  const navigate = useNavigate()
   const section = useLocation().pathname.split('/').pop() ?? 'dashboard'
-  const { user, profile } = useAuth()
-  return <div className="flex min-h-screen"><LiveNotice build={buildNotice} /><Sidebar items={items} /><div className="min-w-0 flex-1"><Header title={titles[section] ?? 'MotoFlash'} name={profile?.restaurantName ?? user?.name ?? ''} role="Restaurante" /><main className="p-5 pb-24 md:p-8"><Outlet /></main></div></div>
+  const { user, profile, logout } = useAuth()
+
+  const leave = () => {
+    logout()
+    navigate('/entrar/restaurante', { replace: true })
+  }
+
+  return (
+    <div className="flex min-h-screen bg-page">
+      <LiveNotice build={buildNotice} />
+      <Sidebar items={items} onLogout={leave} home="/restaurant/dashboard" />
+      <div className="min-w-0 flex-1">
+        <Header title={titles[section] ?? 'MotoFlash'} name={profile?.restaurantName ?? user?.name ?? ''} role="Restaurante" onLogout={leave} />
+        <main className="mx-auto max-w-7xl p-4 pb-24 md:p-8"><Outlet /></main>
+      </div>
+    </div>
+  )
 }

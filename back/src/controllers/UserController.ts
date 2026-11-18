@@ -1,20 +1,21 @@
 import { Request, Response } from "express"
 import { z } from "zod"
 import { UserService } from "../services/UserService"
+import { isValidPhone } from "../services/WhatsAppService"
 
 const userService = new UserService()
 
 const updateProfileSchema = z.object({
   name: z.string().min(2).optional(),
-  phone: z.string().optional(),
+  phone: z.string().refine(isValidPhone, "Informe um WhatsApp válido com DDD").optional(),
   restaurantName: z.string().optional(),
   restaurantAddress: z.string().optional(),
   vehiclePlate: z.string().optional()
 })
 
 const locationSchema = z.object({
-  lat: z.number(),
-  lng: z.number()
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180)
 })
 
 const statusSchema = z.object({
@@ -34,12 +35,16 @@ export class UserController {
   async updateProfile(req: Request, res: Response) {
     const parsed = updateProfileSchema.safeParse(req.body)
     if (!parsed.success) {
-      res.status(400).json({ error: "Dados inválidos" })
+      res.status(400).json({ error: parsed.error.issues[0]?.message ?? "Dados inválidos" })
       return
     }
 
-    const updated = await userService.updateProfile(req.user!.id, parsed.data)
-    res.status(200).json(updated)
+    try {
+      const updated = await userService.updateProfile(req.user!.id, parsed.data)
+      res.status(200).json(updated)
+    } catch (error) {
+      res.status(400).json({ error: (error as Error).message })
+    }
   }
 
   // Motoboy alterna Online/Offline para começar ou parar de receber corridas.

@@ -1,0 +1,22 @@
+meta {
+  name: 4 - Esqueci a Senha
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/forgot-password
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "motoboy@motoflash.com"
+  }
+}
+
+script:post-response {
+  // Sem WhatsApp configurado, a API devolve o código em "devCode".
+  bru.setVar("resetCode", res.body.devCode);
+}

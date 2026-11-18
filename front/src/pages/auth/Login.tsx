@@ -1,37 +1,44 @@
 import { useState, type FormEvent } from 'react'
-import { ArrowRight, Eye, EyeOff, LoaderCircle } from 'lucide-react'
-import { useNavigate } from 'react-router-dom'
-import { homeFor } from '../../auth/context'
+import { ArrowRight, LoaderCircle } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { usePortal } from '../../auth/usePortal'
 import { useAuth } from '../../auth/useAuth'
 import { Button } from '../../components/Button'
+import { FormAlert } from '../../components/FormAlert'
 import { Input } from '../../components/Input'
+import { PasswordInput } from '../../components/PasswordInput'
 import { errorMessage } from '../../lib/api'
+import { isValidEmail } from '../../lib/masks'
+import { portalPaths } from '../../lib/portal'
 
 export function Login() {
+  const portal = usePortal()!
   const navigate = useNavigate()
-  const { login, logout } = useAuth()
+  const location = useLocation()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
+  const [touched, setTouched] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  // Mensagem vinda de outra tela (ex.: senha redefinida).
+  const notice = (location.state as { notice?: string } | null)?.notice
+
+  const isMotoboy = portal.key === 'motoboy'
+  const size: 'lg' | 'md' = isMotoboy ? 'lg' : 'md'
+  const paths = portalPaths(portal.key)
+  const emailError = touched && !isValidEmail(email) ? 'Informe um e-mail válido.' : undefined
+  const passwordError = touched && !password ? 'Informe sua senha.' : undefined
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (!email.trim() || !password.trim()) {
-      setError('Preencha seu e-mail e sua senha para continuar.')
-      return
-    }
+    setTouched(true)
+    if (!isValidEmail(email) || !password) return
     setError('')
     setLoading(true)
     try {
-      const user = await login(email.trim(), password)
-      if (user.role === 'ADMIN') {
-        logout()
-        setError('O perfil administrador ainda não possui painel. Entre com uma conta de restaurante ou motoboy.')
-        return
-      }
-      navigate(homeFor(user.role), { replace: true })
+      await login(email.trim(), password, portal.role)
+      navigate(portal.home, { replace: true })
     } catch (err) {
       setError(errorMessage(err))
     } finally {
@@ -41,23 +48,19 @@ export function Login() {
 
   return (
     <div className="w-full">
-      <div className="mb-9">
-        <p className="text-sm font-semibold text-brand">Bem-vindo de volta</p>
-        <h1 className="mt-2 text-3xl font-bold tracking-tight text-ink sm:text-4xl">Entre na sua conta</h1>
-        <p className="mt-3 text-sm leading-6 text-muted">Acesse sua operação e mantenha as entregas em movimento.</p>
-      </div>
-      <form className="space-y-5" onSubmit={handleSubmit} noValidate>
-        <Input id="login" label="E-mail" type="email" autoComplete="username" placeholder="nome@exemplo.com" value={email} onChange={(event) => setEmail(event.target.value)} error={error && !email ? 'Informe seu e-mail.' : undefined} />
-        <div className="relative">
-          <Input id="password" label="Senha" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="Digite sua senha" value={password} onChange={(event) => setPassword(event.target.value)} error={error && !password ? 'Informe sua senha.' : undefined} />
-          <button type="button" onClick={() => setShowPassword((value) => !value)} className="absolute right-3 top-9 grid size-8 place-items-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600" aria-label={showPassword ? 'Ocultar senha' : 'Mostrar senha'}>
-            {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-          </button>
+      <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{isMotoboy ? 'Entrar' : 'Acesso do restaurante'}</h1>
+      <p className="mt-2 text-sm text-muted">{isMotoboy ? 'Use o e-mail e a senha do seu cadastro.' : 'Entre para pedir motoboys e acompanhar suas entregas.'}</p>
+      <form className="mt-8 space-y-5" onSubmit={handleSubmit} noValidate>
+        {notice && <FormAlert tone="success">{notice}</FormAlert>}
+        <Input id="email" label="E-mail" type="email" inputMode="email" autoComplete="username" placeholder="nome@exemplo.com" inputSize={size} value={email} onChange={(event) => setEmail(event.target.value)} error={emailError} />
+        <div>
+          <PasswordInput id="password" label="Senha" autoComplete="current-password" placeholder="Sua senha" inputSize={size} value={password} onChange={(event) => setPassword(event.target.value)} error={passwordError} />
+          <Link to={paths.forgot} className="mt-2 inline-block text-sm font-semibold text-brand hover:text-brand-dark">Esqueci minha senha</Link>
         </div>
-        {error && <p role="alert" className="rounded-lg bg-red-50 px-3 py-2.5 text-xs text-red-700">{error}</p>}
-        <Button type="submit" fullWidth disabled={loading}>{loading ? <><LoaderCircle size={17} className="animate-spin" />Entrando...</> : <>Entrar <ArrowRight size={17} /></>}</Button>
+        {error && <FormAlert>{error}</FormAlert>}
+        <Button type="submit" size={size} fullWidth disabled={loading}>{loading ? <><LoaderCircle size={18} className="animate-spin" />Entrando...</> : <>Entrar <ArrowRight size={18} /></>}</Button>
       </form>
-      <p className="mt-8 text-center text-sm text-muted">Ainda não possui uma conta? <button type="button" onClick={() => navigate('/select-profile')} className="font-semibold text-brand hover:text-brand-dark">Criar conta</button></p>
+      <p className="mt-8 text-center text-sm text-muted">Ainda não tem conta? <Link to={paths.register} className="font-semibold text-brand hover:text-brand-dark">Cadastre-se</Link></p>
     </div>
   )
 }

@@ -5,7 +5,7 @@ export type RegisterInput = {
   name: string
   email: string
   password: string
-  phone?: string
+  phone: string
   role: Exclude<Role, 'ADMIN'>
   restaurantName?: string
   restaurantAddress?: string
@@ -15,7 +15,7 @@ export type RegisterInput = {
 export type AuthContextValue = {
   user: AuthUser | null
   profile: Profile | null
-  login: (email: string, password: string) => Promise<AuthUser>
+  login: (email: string, password: string, role?: Exclude<Role, 'ADMIN'>) => Promise<AuthUser>
   register: (input: RegisterInput) => Promise<AuthUser>
   logout: () => void
   refreshProfile: () => Promise<void>
@@ -27,4 +27,8 @@ export function homeFor(role: Role) {
   if (role === 'MOTOBOY') return '/motoboy/dashboard'
   if (role === 'RESTAURANT') return '/restaurant/dashboard'
   return '/'
+}
+
+export function loginFor(role: Role) {
+  return role === 'MOTOBOY' ? '/entrar/motoboy' : '/entrar/restaurante'
 }

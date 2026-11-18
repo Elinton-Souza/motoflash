@@ -17,7 +17,8 @@ headers {
 body:json {
   {
     "customerName": "João da Silva",
-    "customerAddress": "Rua Exemplo, 123",
+    "customerPhone": "11988887777",
+    "customerAddress": "Rua Haddock Lobo, 595 - Cerqueira César, São Paulo",
     "customerLat": -23.5620,
     "customerLng": -46.6560,
     "value": 85,
@@ -29,4 +30,5 @@ script:post-response {
   bru.setVar("orderId", res.body.id);
   bru.setVar("orderNumber", res.body.number);
   bru.setVar("pickupCode", res.body.pickupCode);
+  bru.setVar("deliveryCode", res.body.deliveryCode);
 }

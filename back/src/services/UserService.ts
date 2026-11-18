@@ -1,10 +1,13 @@
 import { UserRepository } from "../repositories/UserRepository"
 import { DeliveryRepository } from "../repositories/DeliveryRepository"
 import { emitToUser } from "../lib/socket"
+import { GeocodingService } from "./GeocodingService"
+import { normalizePhone } from "./WhatsAppService"
 import { CourierStatus } from "../../generated/prisma/client"
 
 const userRepository = new UserRepository()
 const deliveryRepository = new DeliveryRepository()
+const geocoding = new GeocodingService()
 
 type UpdateProfileInput = Partial<{
   name: string
@@ -24,7 +27,23 @@ export class UserService {
   }
 
   async updateProfile(userId: string, data: UpdateProfileInput) {
-    const { password, ...safeUser } = await userRepository.updateProfile(userId, data)
+    const current = await userRepository.findById(userId)
+    if (!current) throw new Error("Usuário não encontrado")
+
+    const changes: Parameters<UserRepository["updateProfile"]>[1] = {
+      ...data,
+      ...(data.phone !== undefined ? { phone: normalizePhone(data.phone) ?? data.phone } : {}),
+      ...(data.vehiclePlate !== undefined ? { vehiclePlate: data.vehiclePlate.toUpperCase() } : {})
+    }
+
+    // Endereço do restaurante alterado: atualiza o ponto de coleta no mapa.
+    if (current.role === "RESTAURANT" && data.restaurantAddress && data.restaurantAddress !== current.restaurantAddress) {
+      const point = await geocoding.geocode(data.restaurantAddress)
+      changes.restaurantLat = point?.lat ?? null
+      changes.restaurantLng = point?.lng ?? null
+    }
+
+    const { password, ...safeUser } = await userRepository.updateProfile(userId, changes)
     return safeUser
   }
 

@@ -1,0 +1,19 @@
+meta {
+  name: 5 - Redefinir Senha
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/auth/reset-password
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "email": "motoboy@motoflash.com",
+    "code": "{{resetCode}}",
+    "password": "123456"
+  }
+}

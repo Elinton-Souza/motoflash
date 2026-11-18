@@ -6,7 +6,10 @@ export const courierPublicFields = {
   phone: true,
   vehiclePlate: true,
   ratingAvg: true,
-  ratingCount: true
+  ratingCount: true,
+  // Posição atual, usada para mostrar o motoboy no mapa do restaurante.
+  currentLat: true,
+  currentLng: true
 } as const
 
 export const restaurantPublicFields = {
@@ -14,5 +17,7 @@ export const restaurantPublicFields = {
   name: true,
   phone: true,
   restaurantName: true,
-  restaurantAddress: true
+  restaurantAddress: true,
+  restaurantLat: true,
+  restaurantLng: true
 } as const

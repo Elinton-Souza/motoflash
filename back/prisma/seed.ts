@@ -7,24 +7,35 @@ import { prisma } from "../src/lib/prisma"
 async function main() {
   const password = bcrypt.hashSync("123456", 10)
 
+  // Os telefones são fictícios: troque pelo seu WhatsApp (no perfil) para
+  // receber as mensagens de teste. As coordenadas ficam na região da
+  // Av. Paulista, em São Paulo.
+  const pizzaria = {
+    phone: "5511990000001",
+    restaurantLat: -23.5615,
+    restaurantLng: -46.6558
+  }
+
   const restaurant = await prisma.user.upsert({
     where: { email: "restaurante@motoflash.com" },
-    update: {},
+    update: pizzaria,
     create: {
       name: "Ana Ferreira",
       email: "restaurante@motoflash.com",
       password,
       role: "RESTAURANT",
       restaurantName: "Pizzaria do Zé",
-      restaurantAddress: "Rua das Pizzas, 100 - Centro"
+      restaurantAddress: "Rua Augusta, 1500 - Consolação, São Paulo",
+      ...pizzaria
     }
   })
 
   const courier = await prisma.user.upsert({
     where: { email: "motoboy@motoflash.com" },
-    update: {},
+    update: { phone: "5511990000003" },
     create: {
       name: "Carlos Silva",
+      phone: "5511990000003",
       email: "motoboy@motoflash.com",
       password,
       role: "MOTOBOY",
@@ -39,9 +50,10 @@ async function main() {
   // automático da corrida quando um motoboy recusa ou não responde.
   const courier2 = await prisma.user.upsert({
     where: { email: "motoboy2@motoflash.com" },
-    update: {},
+    update: { phone: "5511990000004" },
     create: {
       name: "Mateus Rocha",
+      phone: "5511990000004",
       email: "motoboy2@motoflash.com",
       password,
       role: "MOTOBOY",
@@ -54,14 +66,17 @@ async function main() {
 
   const restaurant2 = await prisma.user.upsert({
     where: { email: "restaurante2@motoflash.com" },
-    update: {},
+    update: { phone: "5511990000002", restaurantLat: -23.5649, restaurantLng: -46.6522 },
     create: {
       name: "Beatriz Lima",
       email: "restaurante2@motoflash.com",
       password,
       role: "RESTAURANT",
+      phone: "5511990000002",
       restaurantName: "Burger House",
-      restaurantAddress: "Av. Paulista, 1000 - Bela Vista"
+      restaurantAddress: "Av. Paulista, 1000 - Bela Vista, São Paulo",
+      restaurantLat: -23.5649,
+      restaurantLng: -46.6522
     }
   })
 
