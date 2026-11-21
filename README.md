@@ -385,7 +385,8 @@ O arquivo [`render.yaml`](render.yaml) já descreve o serviço.
    - `DATABASE_URL`: string do Neon **com** pooling;
    - `DIRECT_URL`: string do Neon **sem** pooling;
    - `CORS_ORIGIN`: deixe em branco por enquanto (preencha no passo 4).
-   O `JWT_KEY` é gerado automaticamente.
+   O `JWT_KEY` é gerado automaticamente, e o Blueprint já define
+   `NODE_ENV=production` e `TZ=America/Sao_Paulo`.
 3. Clique em **Apply**. O build roda `npm install` (gera o Prisma Client) e
    `npx prisma migrate deploy` (cria as tabelas e o PostGIS). Ao terminar, a API
    fica em algo como `https://motoflash-api.onrender.com`.
@@ -395,6 +396,14 @@ O arquivo [`render.yaml`](render.yaml) já descreve o serviço.
 > Sem Blueprint: **New → Web Service**, *Root Directory* `back`, *Build Command*
 > `npm install && npx prisma migrate deploy`, *Start Command* `npm start`, e as
 > mesmas variáveis de ambiente.
+
+> **Importante em produção:**
+> - `NODE_ENV=production` é obrigatório. Sem ele, e sem WhatsApp configurado, a
+>   API devolve o código de "Esqueci a senha" na resposta (modo de teste), e
+>   qualquer pessoa que saiba um e-mail consegue trocar a senha daquela conta.
+>   Em produção, a recuperação de senha só funciona com o WhatsApp configurado.
+> - `TZ=America/Sao_Paulo` faz os resumos "de hoje" (ganhos do motoboy e
+>   repasses do restaurante) virarem o dia à meia-noite de Brasília, e não às 21h.
 
 ### 3. Frontend (Vercel)
 

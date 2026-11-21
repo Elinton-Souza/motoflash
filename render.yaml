@@ -15,6 +15,12 @@ services:
     envVars:
       - key: NODE_VERSION
         value: "22"
+      # Desliga o modo de teste da recuperação de senha (o código não volta na resposta da API)
+      - key: NODE_ENV
+        value: production
+      # Horário de Brasília: os resumos "de hoje" do financeiro viram o dia à meia-noite daqui
+      - key: TZ
+        value: America/Sao_Paulo
       - key: DATABASE_URL     # Neon, string COM pooling (-pooler)
         sync: false
       - key: DIRECT_URL       # Neon, string SEM pooling (usada no migrate)
