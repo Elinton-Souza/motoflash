@@ -1,4 +1,4 @@
-import type { DeliveryStatus, Order } from '../types/api'
+import type { CourierStatus, DeliveryStatus, Order } from '../types/api'
 
 // "kind" corresponde às cores do componente StatusBadge.
 type StatusInfo = { label: string; kind: string }
@@ -12,6 +12,16 @@ const deliveryStatus: Record<DeliveryStatus, StatusInfo> = {
   CANCELED: { label: 'Cancelada', kind: 'cancelled' },
   NO_COURIER_FOUND: { label: 'Sem motoboy disponível', kind: 'cancelled' },
 }
+
+export const deliveryStatusInfo = (status: DeliveryStatus): StatusInfo => deliveryStatus[status]
+
+const courierStatus: Record<CourierStatus, StatusInfo> = {
+  ONLINE: { label: 'Online', kind: 'online' },
+  ON_DELIVERY: { label: 'Em entrega', kind: 'delivery' },
+  OFFLINE: { label: 'Offline', kind: 'waiting' },
+}
+
+export const courierStatusInfo = (status: CourierStatus | null): StatusInfo => courierStatus[status ?? 'OFFLINE']
 
 export function orderStatusInfo(order: Order): StatusInfo {
   if (order.status === 'DELIVERED') return deliveryStatus.DELIVERED

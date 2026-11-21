@@ -1,4 +1,4 @@
-import { ArrowRight, Bike, Store } from 'lucide-react'
+import { ArrowRight, Bike, ShieldCheck, Store } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import { Logo } from '../../components/Logo'
 import { portalPaths } from '../../lib/portal'
@@ -28,6 +28,7 @@ export function Welcome() {
             </Link>
           ))}
         </div>
+        <Link to={portalPaths('admin').login} className="mt-8 inline-flex items-center gap-1.5 self-center text-sm font-medium text-slate-400 hover:text-ink"><ShieldCheck size={15} />Acesso administrativo</Link>
       </section>
     </main>
   )

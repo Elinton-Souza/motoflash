@@ -8,7 +8,7 @@ Como usar:
    apontando pra `http://localhost:3000`).
 3. Com o backend rodando (`npm run dev` dentro de `back/`) e o seed já
    populado (`npm run prisma:seed`), execute as pastas **em ordem, de cima
-   para baixo**: 01-Auth → 02-Users → 03-Orders → 04-Deliveries → 05-Finance.
+   para baixo**: 01-Auth → 02-Users → 03-Orders → 04-Deliveries → 05-Finance → 06-Admin.
 4. Cada request tem um script "post-response" que guarda automaticamente
    token, ids do pedido/entrega/oferta e os códigos em variáveis
    (`restToken`, `motoToken`, `orderId`, `deliveryId`, `offerId`,

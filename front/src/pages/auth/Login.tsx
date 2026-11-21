@@ -9,7 +9,7 @@ import { Input } from '../../components/Input'
 import { PasswordInput } from '../../components/PasswordInput'
 import { errorMessage } from '../../lib/api'
 import { isValidEmail } from '../../lib/masks'
-import { portalPaths } from '../../lib/portal'
+import { isPublicPortal, portalPaths } from '../../lib/portal'
 
 export function Login() {
   const portal = usePortal()!
@@ -25,6 +25,12 @@ export function Login() {
   const notice = (location.state as { notice?: string } | null)?.notice
 
   const isMotoboy = portal.key === 'motoboy'
+  const isAdmin = portal.key === 'admin'
+  const copy = isMotoboy
+    ? { title: 'Entrar', subtitle: 'Use o e-mail e a senha do seu cadastro.' }
+    : isAdmin
+      ? { title: 'Acesso administrativo', subtitle: 'Área interna para a gestão dos entregadores.' }
+      : { title: 'Acesso do restaurante', subtitle: 'Entre para pedir motoboys e acompanhar suas entregas.' }
   const size: 'lg' | 'md' = isMotoboy ? 'lg' : 'md'
   const paths = portalPaths(portal.key)
   const emailError = touched && !isValidEmail(email) ? 'Informe um e-mail válido.' : undefined
@@ -48,19 +54,19 @@ export function Login() {
 
   return (
     <div className="w-full">
-      <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{isMotoboy ? 'Entrar' : 'Acesso do restaurante'}</h1>
-      <p className="mt-2 text-sm text-muted">{isMotoboy ? 'Use o e-mail e a senha do seu cadastro.' : 'Entre para pedir motoboys e acompanhar suas entregas.'}</p>
+      <h1 className="text-2xl font-bold tracking-tight text-ink sm:text-3xl">{copy.title}</h1>
+      <p className="mt-2 text-sm text-muted">{copy.subtitle}</p>
       <form className="mt-8 space-y-5" onSubmit={handleSubmit} noValidate>
         {notice && <FormAlert tone="success">{notice}</FormAlert>}
         <Input id="email" label="E-mail" type="email" inputMode="email" autoComplete="username" placeholder="nome@exemplo.com" inputSize={size} value={email} onChange={(event) => setEmail(event.target.value)} error={emailError} />
         <div>
           <PasswordInput id="password" label="Senha" autoComplete="current-password" placeholder="Sua senha" inputSize={size} value={password} onChange={(event) => setPassword(event.target.value)} error={passwordError} />
-          <Link to={paths.forgot} className="mt-2 inline-block text-sm font-semibold text-brand hover:text-brand-dark">Esqueci minha senha</Link>
+          {isPublicPortal(portal.key) && <Link to={paths.forgot} className="mt-2 inline-block text-sm font-semibold text-brand hover:text-brand-dark">Esqueci minha senha</Link>}
         </div>
         {error && <FormAlert>{error}</FormAlert>}
         <Button type="submit" size={size} fullWidth disabled={loading}>{loading ? <><LoaderCircle size={18} className="animate-spin" />Entrando...</> : <>Entrar <ArrowRight size={18} /></>}</Button>
       </form>
-      <p className="mt-8 text-center text-sm text-muted">Ainda não tem conta? <Link to={paths.register} className="font-semibold text-brand hover:text-brand-dark">Cadastre-se</Link></p>
+      {isPublicPortal(portal.key) && <p className="mt-8 text-center text-sm text-muted">Ainda não tem conta? <Link to={paths.register} className="font-semibold text-brand hover:text-brand-dark">Cadastre-se</Link></p>}
     </div>
   )
 }

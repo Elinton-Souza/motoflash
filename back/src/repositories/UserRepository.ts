@@ -1,5 +1,6 @@
 import { prisma } from "../lib/prisma"
 import { Prisma, Role, CourierStatus } from "../../generated/prisma/client"
+import { courierAdminFields } from "./publicFields"
 
 type CreateUserInput = {
   name: string
@@ -59,6 +60,22 @@ export class UserRepository {
       where: { role: "MOTOBOY", courierStatus: { in: ["ONLINE", "ON_DELIVERY"] } },
       select: { id: true, name: true, ratingAvg: true, vehiclePlate: true, courierStatus: true },
       orderBy: { name: "asc" }
+    })
+  }
+
+  // Gestão de entregadores (admin): todos os motoboys cadastrados, sem a senha.
+  findCouriers() {
+    return prisma.user.findMany({
+      where: { role: "MOTOBOY" },
+      select: courierAdminFields,
+      orderBy: { name: "asc" }
+    })
+  }
+
+  findCourierById(id: string) {
+    return prisma.user.findFirst({
+      where: { id, role: "MOTOBOY" },
+      select: courierAdminFields
     })
   }
 

@@ -39,7 +39,7 @@ const registerSchema = z.discriminatedUnion("role", [
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(1),
-  role: z.enum(["RESTAURANT", "MOTOBOY"]).optional()
+  role: z.enum(["RESTAURANT", "MOTOBOY", "ADMIN"]).optional()
 })
 
 const forgotSchema = z.object({ email: z.string().trim().email("E-mail inválido") })

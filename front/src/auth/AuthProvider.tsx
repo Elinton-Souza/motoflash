@@ -16,7 +16,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const login = useCallback(
-    async (email: string, password: string, role?: Exclude<Role, 'ADMIN'>) => startSession(await api<Session>('/auth/login', { method: 'POST', body: { email, password, role } })),
+    async (email: string, password: string, role?: Role) => startSession(await api<Session>('/auth/login', { method: 'POST', body: { email, password, role } })),
     [startSession],
   )
 

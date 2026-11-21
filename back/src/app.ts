@@ -6,6 +6,7 @@ import ordersRoutes from "./routes/orders.routes"
 import deliveriesRoutes from "./routes/deliveries.routes"
 import financeRoutes from "./routes/finance.routes"
 import geoRoutes from "./routes/geo.routes"
+import adminRoutes from "./routes/admin.routes"
 import { corsOrigin } from "./lib/corsOrigin"
 
 const app = express()
@@ -19,6 +20,7 @@ app.use("/orders", ordersRoutes)
 app.use("/deliveries", deliveriesRoutes)
 app.use("/finance", financeRoutes)
 app.use("/geo", geoRoutes)
+app.use("/admin", adminRoutes)
 
 app.get("/", (_req, res) => {
   res.send("API Motoflash: marketplace de entregas por motoboy")

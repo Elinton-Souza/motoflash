@@ -1,0 +1,14 @@
+meta {
+  name: 3 - Detalhe do Entregador
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/admin/couriers/{{courierId}}
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+}

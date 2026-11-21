@@ -49,7 +49,8 @@ export function Register() {
     setTouched(true)
     if (Object.keys(errors).length) return
     const input: RegisterInput = {
-      role: portal.role,
+      // A rota de cadastro só existe para motoboy e restaurante (ver AppRoutes).
+      role: portal.role as RegisterInput['role'],
       name: form.name.trim(),
       email: form.email.trim(),
       password: form.password,

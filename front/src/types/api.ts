@@ -91,3 +91,48 @@ export interface RestaurantFinanceSummary {
   totalDeliveryFees: number
   byCourier: Array<{ courierId: string; courierName: string; deliveries: number; totalPaidOut: number }>
 }
+
+// --- Gestão de entregadores (admin) -----------------------------------------
+export interface CourierStats {
+  deliveredCount: number
+  totalEarnings: number
+  averageEarning: number
+  lastDeliveryAt: string | null
+  offersReceived: number
+  offersAccepted: number
+  offersRejected: number
+  offersExpired: number
+  acceptanceRate: number | null
+}
+
+export interface AdminCourier {
+  id: string
+  name: string
+  email: string
+  phone: string | null
+  vehiclePlate: string | null
+  courierStatus: CourierStatus | null
+  ratingAvg: number | null
+  ratingCount: number
+  currentLat: number | null
+  currentLng: number | null
+  createdAt: string
+  stats: CourierStats
+  activeDelivery: { id: string; status: DeliveryStatus; orderNumber: number } | null
+}
+
+export interface AdminCourierDelivery {
+  id: string
+  status: DeliveryStatus
+  orderNumber: number
+  restaurantName: string
+  customerAddress: string
+  distanceKm: number | null
+  earning: number
+  acceptedAt: string | null
+  pickedUpAt: string | null
+  deliveredAt: string | null
+  createdAt: string
+}
+
+export type AdminCourierDetails = AdminCourier & { deliveries: AdminCourierDelivery[] }

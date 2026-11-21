@@ -21,3 +21,19 @@ export const restaurantPublicFields = {
   restaurantLat: true,
   restaurantLng: true
 } as const
+
+// Dados do motoboy vistos pelo administrador na gestão de entregadores
+// (inclui e-mail, status e data de cadastro; nunca a senha).
+export const courierAdminFields = {
+  id: true,
+  name: true,
+  email: true,
+  phone: true,
+  vehiclePlate: true,
+  courierStatus: true,
+  ratingAvg: true,
+  ratingCount: true,
+  currentLat: true,
+  currentLng: true,
+  createdAt: true
+} as const

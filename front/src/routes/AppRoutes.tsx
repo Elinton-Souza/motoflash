@@ -1,8 +1,13 @@
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { homeFor } from '../auth/context'
 import { RequireRole } from '../auth/RequireRole'
+import { usePortal } from '../auth/usePortal'
 import { useAuth } from '../auth/useAuth'
+import { AdminLayout } from '../layouts/AdminLayout'
 import { AuthPortalLayout } from '../layouts/AuthPortalLayout'
+import { isPublicPortal } from '../lib/portal'
+import { CourierDetails } from '../pages/admin/CourierDetails'
+import { Couriers } from '../pages/admin/Couriers'
 import { MotoboyLayout } from '../layouts/MotoboyLayout'
 import { RestaurantLayout } from '../layouts/RestaurantLayout'
 import { ForgotPassword } from '../pages/auth/ForgotPassword'
@@ -27,17 +32,24 @@ function LegacyRegister() {
   return <Navigate to={role === 'MOTOBOY' ? '/cadastro/motoboy' : role === 'RESTAURANT' ? '/cadastro/restaurante' : '/'} replace />
 }
 
+// Cadastro e recuperação de senha só existem para motoboy e restaurante.
+// O administrador é criado direto no banco (seed).
+function PublicPortalOnly({ children }: { children: React.ReactElement }) {
+  const portal = usePortal()
+  return portal && !isPublicPortal(portal.key) ? <Navigate to={`/entrar/${portal.key}`} replace /> : children
+}
+
 export function AppRoutes() {
   const { user } = useAuth()
   // Usuário já logado não precisa ver as telas de acesso.
-  const guest = (element: React.ReactElement) => (user && user.role !== 'ADMIN' ? <Navigate to={homeFor(user.role)} replace /> : element)
+  const guest = (element: React.ReactElement) => (user ? <Navigate to={homeFor(user.role)} replace /> : element)
 
   return <Routes>
     <Route path="/" element={guest(<Welcome />)} />
     <Route element={<AuthPortalLayout />}>
       <Route path="/entrar/:portal" element={guest(<Login />)} />
-      <Route path="/cadastro/:portal" element={guest(<Register />)} />
-      <Route path="/recuperar-senha/:portal" element={<ForgotPassword />} />
+      <Route path="/cadastro/:portal" element={guest(<PublicPortalOnly><Register /></PublicPortalOnly>)} />
+      <Route path="/recuperar-senha/:portal" element={<PublicPortalOnly><ForgotPassword /></PublicPortalOnly>} />
     </Route>
     <Route path="/register" element={<LegacyRegister />} />
     <Route path="/select-profile" element={<Navigate to="/" replace />} />
@@ -62,6 +74,14 @@ export function AppRoutes() {
         <Route path="tracking" element={<DeliveryTracking />} />
         <Route path="finance" element={<RestaurantFinance />} />
         <Route path="settings" element={<RestaurantSettings />} />
+      </Route>
+    </Route>
+
+    <Route element={<RequireRole role="ADMIN" />}>
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<Navigate to="couriers" replace />} />
+        <Route path="couriers" element={<Couriers />} />
+        <Route path="couriers/:id" element={<CourierDetails />} />
       </Route>
     </Route>
 

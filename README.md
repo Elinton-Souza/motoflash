@@ -51,6 +51,11 @@ Projeto da disciplina de Gestão Ágil de Projetos (4º semestre, Senac RS).
 - Finalizar a entrega com o **código que o cliente recebeu no WhatsApp**.
 - Ver ganhos do dia, média por entrega, resumo da semana e histórico.
 
+**Administrador (gestão de entregadores)**
+- Acesso próprio em `/entrar/admin` (link **Acesso administrativo** na tela inicial). Não tem cadastro público.
+- **Lista de entregadores** com status atual (online, em entrega, offline), pedido em andamento, total de entregas, ganhos, taxa de aceite das corridas, nota e data da última entrega. Busca por nome, e-mail ou placa e filtro por status. A lista se atualiza sozinha a cada 15 segundos.
+- **Detalhe do entregador**: dados de cadastro, números de desempenho e o histórico das últimas 50 corridas (restaurante, destino, distância, ganho e status).
+
 **Regras de negócio**
 - Se o motoboy recusar ou não responder em 30 segundos, a corrida passa para o **próximo motoboy mais próximo**.
 - Sem motoboy disponível, o restaurante é avisado e pode **buscar novamente**.
@@ -212,6 +217,7 @@ Abra **http://localhost:5173**, escolha o perfil e entre com uma das
 | Escolher perfil | http://localhost:5173 |
 | Login do motoboy | http://localhost:5173/entrar/motoboy |
 | Login do restaurante | http://localhost:5173/entrar/restaurante |
+| Login do administrador | http://localhost:5173/entrar/admin |
 
 > **Dica:** cada aba do navegador guarda o próprio login. Abra uma aba para o
 > restaurante e outra para o motoboy e acompanhe os dois lados ao mesmo tempo.
@@ -244,8 +250,10 @@ A senha de todas as contas é **`123456`**.
 | Restaurante | Burger House (Beatriz Lima) | `restaurante2@motoflash.com` |
 | Motoboy | Carlos Silva | `motoboy@motoflash.com` |
 | Motoboy | Mateus Rocha | `motoboy2@motoflash.com` |
+| Administrador | Administrador Motoflash | `admin@motoflash.com` |
 
-Também é possível criar novas contas pela tela de login, em **"Cadastre-se"**.
+Também é possível criar novas contas de restaurante e motoboy pela tela de
+login, em **"Cadastre-se"**. A conta de administrador só é criada pelo seed.
 
 Os WhatsApps das contas de demonstração são fictícios. Para receber as
 mensagens de verdade, troque pelo seu número no perfil (motoboy) ou em
@@ -276,6 +284,7 @@ Fluxo completo de uma entrega, com duas abas abertas em http://localhost:5173:
 | Código de retirada errado | Digite um código diferente do mostrado ao restaurante |
 | Código do cliente errado | Na hora de finalizar, digite um código diferente do que o cliente recebeu |
 | Acesso pelo perfil errado | Tente entrar com a conta de motoboy em `/entrar/restaurante` |
+| Gestão de entregadores | Entre em `/entrar/admin` com `admin@motoflash.com`, veja a lista e clique em um motoboy para abrir o histórico. Com um motoboy em corrida, o status dele aparece como **Em entrega** com o número do pedido |
 | Esqueci a senha | Em qualquer login, clique em **Esqueci minha senha**. Sem WhatsApp configurado, o código aparece na própria tela (modo de teste) |
 | Cancelar pedido | Na tela de acompanhamento, cancele enquanto o pedido ainda procura motoboy |
 
@@ -433,6 +442,8 @@ Principais rotas (todas, exceto `/auth`, exigem `Authorization: Bearer <token>`)
 | POST | `/deliveries/:id/complete` | motoboy | Finaliza a entrega com o código do cliente (`{ "code": "1234" }`) |
 | GET | `/finance/courier/daily` · `/history` | motoboy | Financeiro do motoboy |
 | GET | `/finance/restaurant/summary` | restaurante | Financeiro do restaurante |
+| GET | `/admin/couriers` | admin | Entregadores com status, totais e taxa de aceite |
+| GET | `/admin/couriers/:id` | admin | Detalhe do entregador com o histórico de corridas |
 
 Para testar a API sem o frontend, use a coleção do Bruno em [bruno/](bruno/README.md).
 
@@ -443,4 +454,4 @@ Para testar a API sem o frontend, use a coleção do Bruno em [bruno/](bruno/REA
 - **GPS no celular exige HTTPS:** em `http://` pela rede local, o celular bloqueia a localização e o motoboy usa a posição aproximada.
 - **Serviços públicos de mapa:** Nominatim e OSRM são gratuitos e têm limite de uso. Para produção, o ideal é um provedor próprio ou pago.
 - **WhatsApp automático** depende de uma conta Twilio ou Meta. Sem ela, o envio é pelo botão com link.
-- **Ainda não implementado:** avaliação do motoboy por estrelas, relatório em PDF, pagamento por QR Code e painel do administrador.
+- **Ainda não implementado:** avaliação do motoboy por estrelas, relatório em PDF e pagamento por QR Code. A área do administrador cobre só a consulta dos entregadores (sem bloquear ou editar).

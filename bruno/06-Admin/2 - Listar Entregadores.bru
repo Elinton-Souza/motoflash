@@ -1,0 +1,20 @@
+meta {
+  name: 2 - Listar Entregadores
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/admin/couriers
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{adminToken}}
+}
+
+script:post-response {
+  if (Array.isArray(res.body) && res.body.length) {
+    bru.setVar("courierId", res.body[0].id);
+  }
+}

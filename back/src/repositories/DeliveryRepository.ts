@@ -50,6 +50,66 @@ export class DeliveryRepository {
     })
   }
 
+  // --- Gestão de entregadores (admin) -----------------------------------
+
+  // Entregas concluídas por motoboy: quantidade, soma dos ganhos e data da última.
+  deliveredStatsByCourier(courierIds: string[]) {
+    return prisma.delivery.groupBy({
+      by: ["courierId"],
+      where: { courierId: { in: courierIds }, status: "DELIVERED" },
+      _count: { _all: true },
+      _sum: { earning: true },
+      _max: { deliveredAt: true }
+    })
+  }
+
+  // Ofertas de corrida recebidas por motoboy, separadas por resposta
+  // (aceita, recusada, expirada), para calcular a taxa de aceite.
+  offerStatsByCourier(courierIds: string[]) {
+    return prisma.deliveryOffer.groupBy({
+      by: ["courierId", "status"],
+      where: { courierId: { in: courierIds } },
+      _count: { _all: true }
+    })
+  }
+
+  findActiveByCouriers(courierIds: string[]) {
+    return prisma.delivery.findMany({
+      where: {
+        courierId: { in: courierIds },
+        status: { in: ["COURIER_ASSIGNED", "PICKED_UP", "IN_DELIVERY"] }
+      },
+      select: { id: true, courierId: true, status: true, order: { select: { number: true } } }
+    })
+  }
+
+  // Histórico do motoboy para o admin: todas as corridas que ele assumiu
+  // (concluídas, em andamento ou canceladas), das mais recentes para as antigas.
+  findRecentByCourier(courierId: string, take = 50) {
+    return prisma.delivery.findMany({
+      where: { courierId },
+      orderBy: { createdAt: "desc" },
+      take,
+      select: {
+        id: true,
+        status: true,
+        distanceKm: true,
+        earning: true,
+        acceptedAt: true,
+        pickedUpAt: true,
+        deliveredAt: true,
+        createdAt: true,
+        order: {
+          select: {
+            number: true,
+            customerAddress: true,
+            restaurant: { select: { restaurantName: true, name: true } }
+          }
+        }
+      }
+    })
+  }
+
   updateStatus(id: string, status: DeliveryStatus, extra: Prisma.DeliveryUpdateInput = {}) {
     return prisma.delivery.update({ where: { id }, data: { status, ...extra } })
   }
