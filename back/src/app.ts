@@ -6,10 +6,11 @@ import ordersRoutes from "./routes/orders.routes"
 import deliveriesRoutes from "./routes/deliveries.routes"
 import financeRoutes from "./routes/finance.routes"
 import geoRoutes from "./routes/geo.routes"
+import { corsOrigin } from "./lib/corsOrigin"
 
 const app = express()
 
-app.use(cors())
+app.use(cors({ origin: corsOrigin() }))
 app.use(express.json())
 
 app.use("/auth", authRoutes)

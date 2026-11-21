@@ -1,0 +1,29 @@
+# Blueprint do Render para a API do Motoflash.
+# No Render: New > Blueprint > escolha este repositório.
+# As variáveis marcadas com "sync: false" são pedidas no momento da criação.
+services:
+  - type: web
+    name: motoflash-api
+    runtime: node
+    region: virginia        # mesma região do banco no Neon (AWS us-east-1)
+    plan: free
+    rootDir: back
+    buildCommand: npm install && npx prisma migrate deploy
+    startCommand: npm start
+    healthCheckPath: /
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: DATABASE_URL     # Neon, string COM pooling (-pooler)
+        sync: false
+      - key: DIRECT_URL       # Neon, string SEM pooling (usada no migrate)
+        sync: false
+      - key: JWT_KEY
+        generateValue: true
+      - key: CORS_ORIGIN      # URL do front na Vercel, ex.: https://motoflash.vercel.app
+        sync: false
+      - key: GEOCODING_DISABLED
+        value: "false"
+      - key: WHATSAPP_PROVIDER
+        value: ""

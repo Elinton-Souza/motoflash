@@ -9,7 +9,8 @@
     "start": "npx tsx src/server.ts",
     "prisma:migrate": "npx prisma migrate dev",
     "prisma:seed": "npx tsx prisma/seed.ts",
-    "prisma:studio": "npx prisma studio"
+    "prisma:studio": "npx prisma studio",
+    "prisma:deploy": "npx prisma migrate deploy"
   },
   "keywords": [],
   "author": "",
@@ -24,7 +25,9 @@
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.23.0",
+    "prisma": "^7.10.0",
     "socket.io": "^4.8.1",
+    "tsx": "^4.23.12",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -34,8 +37,9 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.4.0",
     "@types/pg": "^8.23.1",
-    "prisma": "^7.10.0",
-    "tsx": "^4.23.12",
     "typescript": "^7.0.2"
+  },
+  "engines": {
+    "node": ">=22"
   }
 }

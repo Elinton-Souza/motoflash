@@ -3,6 +3,9 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// O Prisma CLI (migrate, studio, seed) usa a conexão DIRETA do Neon.
+// A aplicação em si (src/lib/prisma.ts) usa a conexão com pooling (DATABASE_URL).
+// Se DIRECT_URL não estiver definida, cai para DATABASE_URL.
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -10,6 +13,6 @@ export default defineConfig({
     seed: "tsx prisma/seed.ts"
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    url: process.env["DIRECT_URL"] ?? process.env["DATABASE_URL"],
   },
 });

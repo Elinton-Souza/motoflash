@@ -21,6 +21,7 @@ Projeto da disciplina de Gestão Ágil de Projetos (4º semestre, Senac RS).
 - [GPS e mapa](#gps-e-mapa)
 - [Comandos úteis](#comandos-úteis)
 - [Problemas comuns](#problemas-comuns)
+- [Deploy (Neon + Render + Vercel)](#deploy-neon--render--vercel)
 - [API](#api)
 - [Limitações conhecidas](#limitações-conhecidas)
 
@@ -68,7 +69,7 @@ Projeto da disciplina de Gestão Ágil de Projetos (4º semestre, Senac RS).
 | **Mapas e GPS** | OpenStreetMap (mapa), Nominatim (endereço → coordenadas), OSRM (rota pelas ruas) e a Geolocation API do navegador (GPS do motoboy). Nenhum deles exige chave |
 | **WhatsApp** | Twilio (sandbox gratuito) ou WhatsApp Cloud API da Meta. Sem configuração, as telas oferecem o envio por link `wa.me` |
 | **Banco de dados** | PostgreSQL 17 com a extensão **PostGIS**, usada para a busca de motoboys por proximidade (`ST_DWithin` / `ST_Distance`) |
-| **Infraestrutura** | Docker, para subir o banco com PostGIS sem instalar nada além do Docker |
+| **Infraestrutura** | [Neon](https://neon.tech) (PostgreSQL + PostGIS na nuvem), [Render](https://render.com) (API) e [Vercel](https://vercel.com) (frontend) |
 | **Testes de API** (`bruno/`) | Coleção do [Bruno](https://www.usebruno.com/) com todas as rotas, opcional |
 
 ---
@@ -100,7 +101,7 @@ motoflash/
 **Como as partes conversam**
 
 ```
-Navegador (React, :5173)  ── HTTP/JSON + JWT ──▶  API Express (:3000)  ──▶  PostgreSQL + PostGIS (:5433)
+Navegador (React, :5173)  ── HTTP/JSON + JWT ──▶  API Express (:3000)  ──▶  Neon (PostgreSQL + PostGIS)
           ▲                                             │
           └──────────── eventos Socket.io ──────────────┘
 ```
@@ -125,10 +126,8 @@ O passo a passo serve para Windows, macOS e Linux.
 | Ferramenta | Versão | Download |
 |---|---|---|
 | **Node.js** | 22 LTS ou mais recente | https://nodejs.org |
-| **Docker Desktop** | qualquer versão recente | https://www.docker.com/products/docker-desktop |
+| **Conta no Neon** | plano gratuito | https://neon.tech |
 | **Git** | qualquer versão | https://git-scm.com |
-
-> Abra o **Docker Desktop** e espere ele terminar de iniciar antes de continuar.
 
 ### 1. Clonar o repositório
 
@@ -137,15 +136,22 @@ git clone https://github.com/Elinton-Souza/motoflash.git
 cd motoflash
 ```
 
-### 2. Subir o banco de dados (PostgreSQL + PostGIS)
+### 2. Criar o banco de dados no Neon (PostgreSQL + PostGIS)
 
-```bash
-docker run -d --name motoflash-db -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=motoflash -p 5433:5432 postgis/postgis:17-3.5
-```
+Não é preciso instalar banco nenhum na máquina: o banco fica no Neon.
 
-O comando baixa a imagem (só na primeira vez) e deixa o banco rodando na porta
-**5433**. Essa porta foi escolhida para não conflitar com um PostgreSQL que
-você já tenha instalado na 5432.
+1. Entre em https://console.neon.tech e crie um projeto (ex.: `motoflash`).
+   Em **Region**, escolha **AWS US East 1 (N. Virginia)**, a mesma região
+   onde a API roda no Render.
+2. No painel do projeto, clique em **Connect** e copie **duas** strings de conexão:
+   - com **Connection pooling ligado** (o host tem `-pooler`): vai no `DATABASE_URL`;
+   - com **Connection pooling desligado**: vai no `DIRECT_URL`.
+
+A extensão **PostGIS** é habilitada sozinha pela primeira migration
+(`CREATE EXTENSION IF NOT EXISTS postgis`), então não há nada a fazer no Neon.
+
+> **Dica:** para não misturar dados de teste com os de produção, crie uma
+> *branch* `dev` no Neon (menu **Branches**) e use as strings dela no seu `.env` local.
 
 ### 3. Configurar e iniciar o backend
 
@@ -163,11 +169,11 @@ cp .env.example .env
 Copy-Item .env.example .env
 ```
 
-Abra o `back/.env` e confira estas duas linhas (se você já tinha um `.env`
-antigo, confira se a porta é **5433**):
+Abra o `back/.env` e cole as strings do Neon:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5433/motoflash?schema=public"
+DATABASE_URL="postgresql://USUARIO:SENHA@ep-xxxxx-pooler.us-east-1.aws.neon.tech/neondb?sslmode=require"
+DIRECT_URL="postgresql://USUARIO:SENHA@ep-xxxxx.us-east-1.aws.neon.tech/neondb?sslmode=require"
 JWT_KEY="coloque-aqui-qualquer-texto-longo-e-secreto"
 ```
 
@@ -222,9 +228,8 @@ Abra **http://localhost:5173**, escolha o perfil e entre com uma das
 Com tudo já instalado, basta:
 
 ```bash
-docker start motoflash-db     # 1. banco (com o Docker Desktop aberto)
-cd back  && npm run dev       # 2. API, num terminal
-cd front && npm run dev       # 3. app, em outro terminal
+cd back  && npm run dev       # 1. API, num terminal (o banco já está no Neon)
+cd front && npm run dev       # 2. app, em outro terminal
 ```
 
 ---
@@ -325,8 +330,7 @@ Para usar a API oficial da Meta, use `WHATSAPP_PROVIDER=meta` com
 | `front/` | `npm run dev` | Inicia o frontend |
 | `front/` | `npm run build` | Checa os tipos e gera a versão de produção em `front/dist` |
 | `front/` | `npm run lint` | Verifica o código com ESLint |
-| raiz | `docker stop motoflash-db` | Desliga o banco |
-| raiz | `docker rm -f motoflash-db` | **Apaga** o banco e todos os dados. Para recomeçar do zero, repita os passos 2 e 3 |
+| `back/` | `npm run prisma:deploy` | Aplica as migrations pendentes no banco do Neon |
 
 ---
 
@@ -334,10 +338,9 @@ Para usar a API oficial da Meta, use `WHATSAPP_PROVIDER=meta` com
 
 | Problema | Solução |
 |---|---|
-| `failed to connect to the docker API` | O Docker Desktop não está aberto. Abra e espere iniciar. |
-| `docker: Conflict. The container name "/motoflash-db" is already in use` | O banco já foi criado antes. Use `docker start motoflash-db`. |
-| `port is already allocated` ao subir o banco | Outro programa usa a porta 5433. Troque `-p 5433:5432` por `-p 5434:5432` e ajuste a porta no `DATABASE_URL`. |
-| `Can't reach database server` ao rodar o Prisma | O container não está rodando (`docker start motoflash-db`) ou a porta no `.env` está errada. |
+| `Can't reach database server` ao rodar o Prisma | Confira as strings no `back/.env` (copiadas do botão **Connect** do Neon, com `?sslmode=require`). No plano gratuito o banco "dorme" depois de alguns minutos sem uso; a primeira conexão pode levar alguns segundos. |
+| `prisma migrate deploy` trava ou dá erro de *advisory lock* | O `DIRECT_URL` está apontando para o host `-pooler`. Use a string **sem** pooling. |
+| No ar, o front mostra *"Não foi possível conectar ao servidor"* | Confira o `VITE_API_URL` na Vercel e o `CORS_ORIGIN` no Render. No plano gratuito do Render a API dorme após 15 min parada e leva ~1 min para acordar. |
 | Tela de login diz *"Não foi possível conectar ao servidor"* | A API não está rodando. Rode `npm run dev` em `back/`. |
 | `E-mail ou senha inválidos` com as contas de demonstração | O seed não foi executado. Rode `npm run prisma:seed` em `back/`. |
 | O motoboy não recebe a corrida | Confira se ele está **online** (botão no painel do motoboy) antes de o restaurante solicitar. |
@@ -346,6 +349,60 @@ Para usar a API oficial da Meta, use `WHATSAPP_PROVIDER=meta` com
 | "Esta conta é de motoboy..." ao entrar | Você usou o login do outro perfil. Volte e escolha o perfil certo. |
 | O mapa aparece cinza | Sem internet para carregar o OpenStreetMap. |
 | "Permissão de localização negada" | Libere a localização para o site nas configurações do navegador (cadeado na barra de endereço). |
+
+---
+
+## Deploy (Neon + Render + Vercel)
+
+```
+Vercel (front/, estático)  ──HTTPS + Socket.io──▶  Render (back/, Web Service)  ──▶  Neon (Postgres + PostGIS)
+```
+
+A API fica no **Render** porque usa Socket.io (conexão WebSocket contínua),
+que não roda nas funções serverless da Vercel. O frontend é estático e vai
+para a **Vercel**.
+
+### 1. Banco (Neon)
+
+Siga o passo [2. Criar o banco de dados no Neon](#2-criar-o-banco-de-dados-no-neon-postgresql--postgis).
+Guarde as duas strings (com e sem pooling).
+
+### 2. API (Render)
+
+O arquivo [`render.yaml`](render.yaml) já descreve o serviço.
+
+1. Em https://dashboard.render.com, clique em **New → Blueprint** e escolha este repositório.
+2. Preencha as variáveis pedidas:
+   - `DATABASE_URL`: string do Neon **com** pooling;
+   - `DIRECT_URL`: string do Neon **sem** pooling;
+   - `CORS_ORIGIN`: deixe em branco por enquanto (preencha no passo 4).
+   O `JWT_KEY` é gerado automaticamente.
+3. Clique em **Apply**. O build roda `npm install` (gera o Prisma Client) e
+   `npx prisma migrate deploy` (cria as tabelas e o PostGIS). Ao terminar, a API
+   fica em algo como `https://motoflash-api.onrender.com`.
+4. Para criar as contas de demonstração, rode uma vez **na sua máquina**, com o
+   `back/.env` apontando para o mesmo banco: `npm run prisma:seed`.
+
+> Sem Blueprint: **New → Web Service**, *Root Directory* `back`, *Build Command*
+> `npm install && npx prisma migrate deploy`, *Start Command* `npm start`, e as
+> mesmas variáveis de ambiente.
+
+### 3. Frontend (Vercel)
+
+1. Em https://vercel.com/new, importe este repositório.
+2. Em **Root Directory**, escolha `front` (o preset **Vite** é detectado sozinho).
+3. Em **Environment Variables**, crie `VITE_API_URL` com a URL do Render, sem barra no final.
+4. Clique em **Deploy**. O [`front/vercel.json`](front/vercel.json) já redireciona
+   todas as rotas para o `index.html`, então links como `/entrar/motoboy` funcionam ao recarregar.
+
+### 4. Ligar as duas pontas
+
+No Render, em **Environment**, preencha `CORS_ORIGIN` com a URL da Vercel
+(ex.: `https://motoflash.vercel.app`; várias separadas por vírgula) e salve.
+O serviço reinicia sozinho.
+
+A cada `git push` na `main`, Render e Vercel fazem o deploy de novo. Se o
+push tiver uma migration nova, o Render aplica no Neon durante o build.
 
 ---
 

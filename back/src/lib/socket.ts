@@ -1,5 +1,6 @@
 import { Server as IOServer } from "socket.io"
 import type { Server as HTTPServer } from "http"
+import { corsOrigin } from "./corsOrigin"
 
 // Servidor de mensageria em tempo real (Épico 1 / Épico 4).
 // Cada usuário entra em uma "sala" própria (user:<id>) ao conectar,
@@ -10,7 +11,7 @@ let io: IOServer | undefined
 
 export function initSocket(httpServer: HTTPServer) {
   io = new IOServer(httpServer, {
-    cors: { origin: "*" }
+    cors: { origin: corsOrigin() }
   })
 
   io.on("connection", (socket) => {

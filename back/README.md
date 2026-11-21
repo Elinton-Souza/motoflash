@@ -60,7 +60,8 @@ Serviços de apoio:
 
 ```bash
 cp .env.example .env
-# edite DATABASE_URL (Postgres com a extensão PostGIS) e JWT_KEY
+# cole DATABASE_URL (Neon, com pooling), DIRECT_URL (Neon, sem pooling) e JWT_KEY
+# veja o passo a passo do Neon e do deploy no README da raiz
 
 npm install
 

@@ -1,6 +1,6 @@
 import type { Session } from '../types/api'
 
-export const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000'
+export const API_URL = (import.meta.env.VITE_API_URL ?? 'http://localhost:3000').replace(/\/$/, '')
 
 // A sessão fica no sessionStorage (por aba), assim é possível ficar logado
 // como restaurante em uma aba e como motoboy em outra ao mesmo tempo.
